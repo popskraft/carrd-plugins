@@ -30,7 +30,7 @@ Add two embeds to your Carrd site — that's all.
 In Carrd: `Add Element → Embed → Code → Hidden → Head`
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd@main/dist/theme-core.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-core.min.css">
 ```
 
 ### Step 2 — Body End embed
@@ -38,7 +38,7 @@ In Carrd: `Add Element → Embed → Code → Hidden → Head`
 In Carrd: `Add Element → Embed → Code → Hidden → Body End`
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/popskraft/carrd@main/dist/theme-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-core.min.js"></script>
 ```
 
 > `theme-core.min.css` includes design tokens, shared UI styles, and all bundle plugin CSS.
