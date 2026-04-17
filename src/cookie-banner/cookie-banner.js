@@ -225,8 +225,9 @@
       });
     }
 
-    // Initially hide the banner for smooth fade-in
-    banner.style.display = '';
+    // Force explicit display mode so we override base CSS hide rule.
+    // Carrd "columns" containers are flex-based; other blocks can use block.
+    banner.style.display = banner.classList.contains('columns') ? 'flex' : 'block';
     banner.style.visibility = 'visible';
     banner.style.opacity = '0';
     banner.style.transition = 'opacity ' + CONFIG.fadeInDuration + 'ms ease';
