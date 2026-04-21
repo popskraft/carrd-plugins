@@ -291,14 +291,7 @@
       this.wrapper.classList.remove('is-dragging');
       this.translateX = this.normalizeTranslate(this.draggedTranslate);
       this.track.style.transform = `translateX(${this.translateX}px)`;
-
-      if (this.config.freeScroll) {
-        this.syncIndexToTranslate();
-        if (this.config.autoplay) this.startAutoplay();
-        return;
-      }
-
-      this.startMomentum();
+      this.startMomentum({ snap: !this.config.freeScroll });
     }
 
     onWheel(e) {
@@ -323,7 +316,21 @@
       this.snapToNearest();
     }
 
-    startMomentum() {
+    finishMomentum({ snap }) {
+      this.animationId = null;
+      this.translateX = this.normalizeTranslate(this.translateX);
+      this.track.style.transform = `translateX(${this.translateX}px)`;
+
+      if (snap) {
+        this.snapToNearest();
+        return;
+      }
+
+      this.syncIndexToTranslate();
+      if (this.config.autoplay) this.startAutoplay();
+    }
+
+    startMomentum({ snap = true } = {}) {
       const min = this.getMinTranslate();
       const step = () => {
         this.velocity *= 0.95;
@@ -334,11 +341,11 @@
 
         this.track.style.transform = `translateX(${this.translateX}px)`;
         if (Math.abs(this.velocity) > 0.05) this.animationId = requestAnimationFrame(step);
-        else this.snapToNearest();
+        else this.finishMomentum({ snap });
       };
 
       if (Math.abs(this.velocity) > 0.05) this.animationId = requestAnimationFrame(step);
-      else this.snapToNearest();
+      else this.finishMomentum({ snap });
     }
 
     normalizeTranslate(value) {
