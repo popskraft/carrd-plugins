@@ -31,8 +31,8 @@
 .theme-header-nav-shell.theme-header-nav-sticky.is-stuck {
   position: fixed;
   top: var(--theme-header-nav-sticky-top, 0);
-  left: 0;
-  right: 0;
+  left: var(--theme-header-nav-fixed-left, 0);
+  width: var(--theme-header-nav-fixed-width, 100%);
   z-index: var(--theme-header-nav-sticky-z-index, 1000);
 }
 
@@ -41,7 +41,7 @@
     position: relative;
     top: unset;
     left: unset;
-    right: unset;
+    width: unset;
   }
 }
 

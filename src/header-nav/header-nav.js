@@ -39,7 +39,9 @@
 
   const CSS_VARS = {
     maxHeight: '--theme-header-nav-max-height',
-    stickyTop: '--theme-header-nav-sticky-top'
+    stickyTop: '--theme-header-nav-sticky-top',
+    fixedLeft: '--theme-header-nav-fixed-left',
+    fixedWidth: '--theme-header-nav-fixed-width'
   };
 
   const INSTANCES = [];
@@ -168,8 +170,8 @@
     root.classList.add(CLASSNAMES.root, CLASSNAMES.initialized);
     root.classList.toggle(CLASSNAMES.collapsible, collapsibleEnabled && hasNav);
     root.classList.remove(CLASSNAMES.stickyRoot, CLASSNAMES.stuck, CLASSNAMES.hidden);
-    root.style.removeProperty('--theme-header-nav-fixed-left');
-    root.style.removeProperty('--theme-header-nav-fixed-width');
+    root.style.removeProperty(CSS_VARS.fixedLeft);
+    root.style.removeProperty(CSS_VARS.fixedWidth);
     root.style.setProperty(CSS_VARS.maxHeight, CONFIG.navMaxHeight);
 
     sections.forEach(section => {
@@ -236,6 +238,11 @@
 
     const syncMetrics = () => {
       const stickyHeight = (stickyTarget || root).getBoundingClientRect().height;
+      if (stickyTarget && spacer) {
+        const spacerRect = spacer.getBoundingClientRect();
+        stickyTarget.style.setProperty(CSS_VARS.fixedLeft, `${spacerRect.left}px`);
+        stickyTarget.style.setProperty(CSS_VARS.fixedWidth, `${spacerRect.width}px`);
+      }
       if (spacer) spacer.style.height = stickyHeight > 0 ? `${stickyHeight}px` : '0px';
     };
 
