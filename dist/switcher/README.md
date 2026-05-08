@@ -54,39 +54,61 @@ Switches Carrd elements with a normal Carrd buttons list.
 
 ## What You Do in Carrd
 
-Default mode uses numbered target classes.
+Default mode uses target classes. There are two ways to assign them.
+
+**Option A — shared class (simpler):**
 
 1. Create a Carrd Buttons element.
-2. Add a custom attribute to that buttons list: `data-switcher="switcher"`.
+2. Add a custom attribute to that buttons list: `data-switcher="pricing"`.
 3. Create the elements that should be switched.
-4. Add class `switcher-1` to the element shown by the first button.
-5. Add class `switcher-2` to the element shown by the second button.
-6. Continue with `switcher-3`, `switcher-4`, and so on if you add more buttons.
+4. Add the same class `pricing` to every target.
+5. DOM order decides which button controls which target: first element → first button, second element → second button.
 
-You can replace `switcher` with any simple name. For example, `data-switcher="pricing"` uses targets named `pricing-1`, `pricing-2`, and `pricing-3`.
+**Option B — numbered classes (when one button must control several elements at once):**
+
+1. Create a Carrd Buttons element.
+2. Add a custom attribute to that buttons list: `data-switcher="pricing"`.
+3. Create the elements that should be switched.
+4. Add class `pricing-1` to every element shown by the first button.
+5. Add class `pricing-2` to every element shown by the second button.
+6. Continue with `pricing-3`, `pricing-4`, and so on if you add more buttons.
+
+You can replace `pricing` with any simple name.
 
 ## How It Works in Carrd
 
 - The buttons list is the controller.
 - The `data-switcher` value is the switcher name.
 - Button order decides the target index.
-- The first button controls `<name>-1`.
-- The second button controls `<name>-2`.
-- Multiple elements may use the same target class and will switch together.
+- The plugin maps by button order, not by Carrd's `n01` or `n02` classes.
+- If numbered classes (`name-1`, `name-2`) exist, they are used and shared class is ignored.
+- If no numbered classes exist, all elements with the shared class (`name`) are used in DOM order.
 
-Example:
+**Shared class example:**
 
 ```html
-<ul class="buttons-component" data-switcher="switcher">
-    <li><a href="#" class="n01" role="button">State 1</a></li>
-    <li><a href="#" class="n02" role="button">State 2</a></li>
+<ul class="buttons-component" data-switcher="pricing">
+    <li><a href="#" role="button">Monthly</a></li>
+    <li><a href="#" role="button">Yearly</a></li>
 </ul>
 
-<p class="text-component switcher-1">State 1 content</p>
-<p class="text-component switcher-2">State 2 content</p>
+<p class="text-component pricing">Monthly content</p>
+<p class="text-component pricing">Yearly content</p>
 ```
 
-The plugin maps by button order, not by Carrd's `n01` or `n02` classes.
+**Numbered class example** (use when one button must show several elements at once):
+
+```html
+<ul class="buttons-component" data-switcher="pricing">
+    <li><a href="#" role="button">Monthly</a></li>
+    <li><a href="#" role="button">Yearly</a></li>
+</ul>
+
+<p class="text-component pricing-1">Monthly price</p>
+<p class="text-component pricing-1">Monthly note</p>
+<p class="text-component pricing-2">Yearly price</p>
+<p class="text-component pricing-2">Yearly note</p>
+```
 
 Targets can be text, images, lists, icons, buttons, containers, or other Carrd elements. The plugin hides and shows the whole element that has the target class.
 
@@ -238,22 +260,25 @@ window.CarrdPluginOptions = {
 
 ## Advanced: Whole Sections With Class-Index Mode
 
-You can also switch sections with the default numbered class mode.
+You can also switch sections with numbered classes. Use shared class when each button controls exactly one section; use numbered classes when one button must show several elements at once.
 
-Example:
+Shared class (one section per button):
+
+```html
+<ul class="buttons-component" data-switcher="page-mode">...</ul>
+
+<section class="page-mode">...</section>
+<section class="page-mode">...</section>
+```
+
+Numbered classes (one button controls a section plus an extra note):
 
 ```html
 <ul class="buttons-component" data-switcher="page-mode">...</ul>
 
 <section class="page-mode-1">...</section>
-<section class="page-mode-2">...</section>
-```
-
-This is useful when one button should show several targets at once, for example a section plus a floating note:
-
-```html
-<section class="page-mode-1">...</section>
 <p class="page-mode-1">Extra note for mode 1</p>
+<section class="page-mode-2">...</section>
 ```
 
 ## Advanced: Multiple Switchers
@@ -281,4 +306,4 @@ window.CarrdSwitcher.prev('switcher');
 window.CarrdSwitcher.refresh();
 ```
 
-Indexes are one-based, matching the target classes: `switcher-1`, `switcher-2`, and so on.
+Indexes are one-based. `1` activates the first button and its target, `2` the second, and so on.
