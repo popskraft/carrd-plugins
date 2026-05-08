@@ -1,6 +1,8 @@
 # Switcher
 
-Switches Carrd elements with a normal Carrd Buttons list.
+Turns a Carrd **Buttons** element into a tab switcher. Each button shows one set of content and hides the rest. Works with any Carrd element — text, images, containers, or whole sections.
+
+No coding required for basic use. Connect buttons to targets by adding a custom attribute to the Buttons element and a matching class to each target.
 
 ---
 
@@ -37,7 +39,7 @@ Use cluster mode when you want to switch whole sections or containers by order.
    - `data-switcher-cluster=cases`
 3. Order decides the mapping: first target → first button, second → second.
 
-Place the Buttons element **outside** the sections you are switching. If the buttons end up inside a hidden section, they will disappear too.
+Place the Buttons element **outside** the sections or containers you are switching. If the buttons end up inside a hidden section, they will disappear too.
 
 ---
 
@@ -71,7 +73,16 @@ Add a **Code** embed and paste this block **above** the plugin embed if you want
 window.CarrdPluginOptions = {
     switcher: {
         defaultIndex: 1,
-        warnOnMismatch: true
+        warnOnMismatch: true,
+        instances: {
+            price: {
+                defaultIndex: 2
+            },
+            cases: {
+                defaultIndex: 1,
+                clusterScopeSelector: '.site-main'
+            }
+        }
     }
 };
 </script>
@@ -79,14 +90,25 @@ window.CarrdPluginOptions = {
 
 If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds.
 
+`instances` is optional. Use it when two different switchers on the same page need different behavior. The key must match the `data-switcher` value:
+
+- `instances.price` applies only to `data-switcher="price"`;
+- `instances.cases` applies only to `data-switcher="cases"`;
+- any missing option falls back to the global `switcher` option.
+
 ### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|
 | `enabled` | `true` | Turns the plugin on or off |
+| `controllerSelector` | `[data-switcher]` | Selector used to find switcher controllers |
 | `defaultIndex` | `1` | Button and target shown on page load |
 | `warnOnMismatch` | `true` | Shows console warnings for missing targets |
+| `scopeSelector` | `section` | Parent scope used to find class-mode targets |
+| `modeAttribute` | `data-switcher-mode` | Attribute used to select `class-index` or `cluster` |
+| `clusterTargetAttribute` | `data-switcher-cluster` | Attribute used by cluster mode targets |
 | `clusterScopeSelector` | `.site-main` | Parent scope used to find cluster targets |
+| `instances` | `{}` | Per-`data-switcher` option overrides |
 
 ---
 
@@ -102,6 +124,22 @@ Add a **Code** embed with a `<style>` tag and override any of these variables:
     --theme-switcher-animation-duration: 0.3s;
     --theme-switcher-animation-distance: 0.5rem;
     --theme-switcher-animation-easing: ease-out;
+}
+</style>
+```
+
+To style different controllers differently, scope variables to the controller:
+
+```css
+<style>
+[data-switcher="price"] {
+    --theme-switcher-active-bg: #111111;
+    --theme-switcher-active-color: #ffffff;
+}
+
+[data-switcher="cases"] {
+    --theme-switcher-active-bg: #0057ff;
+    --theme-switcher-active-color: #ffffff;
 }
 </style>
 ```

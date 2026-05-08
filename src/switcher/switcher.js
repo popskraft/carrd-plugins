@@ -16,7 +16,11 @@
     window.CarrdPluginOptions &&
     window.CarrdPluginOptions.switcher) || {};
 
-  const CONFIG = { ...DEFAULTS, ...externalOptions };
+  const globalOptions = { ...externalOptions };
+  delete globalOptions.instances;
+
+  const CONFIG = { ...DEFAULTS, ...globalOptions };
+  const INSTANCE_OPTIONS = externalOptions.instances || {};
   const SELECTORS = {
     controller: 'theme-switcher-controller',
     button: 'theme-switcher-button',
@@ -28,8 +32,13 @@
   const instances = new Map();
   const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
-  function warn(message, context) {
-    if (!CONFIG.warnOnMismatch && !/invalid|empty/i.test(message)) return;
+  function getConfig(switcherName) {
+    const instanceOptions = (switcherName && INSTANCE_OPTIONS[switcherName]) || {};
+    return { ...CONFIG, ...instanceOptions };
+  }
+
+  function warn(config, message, context) {
+    if (!config.warnOnMismatch && !/invalid|empty/i.test(message)) return;
     if (typeof console !== 'undefined' && console.warn) {
       console.warn(`Switcher: ${message}`, context || '');
     }
@@ -42,22 +51,22 @@
     return value.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
   }
 
-  function getMode(controller) {
-    return (controller.getAttribute(CONFIG.modeAttribute) || 'class-index').trim();
+  function getMode(controller, config) {
+    return (controller.getAttribute(config.modeAttribute) || 'class-index').trim();
   }
 
-  function getScope(controller, mode) {
+  function getScope(controller, mode, config) {
     if (mode === 'cluster') {
-      if (CONFIG.clusterScopeSelector) {
-        const clusterScope = controller.closest(CONFIG.clusterScopeSelector);
+      if (config.clusterScopeSelector) {
+        const clusterScope = controller.closest(config.clusterScopeSelector);
         if (clusterScope) return clusterScope;
       }
 
       return controller.closest('.site-main') || document;
     }
 
-    if (CONFIG.scopeSelector) {
-      const configuredScope = controller.closest(CONFIG.scopeSelector);
+    if (config.scopeSelector) {
+      const configuredScope = controller.closest(config.scopeSelector);
       if (configuredScope) return configuredScope;
     }
 
@@ -100,33 +109,34 @@
       .replace(/^["']+|["']+$/g, '');
   }
 
-  function isClusterTarget(element, switcherName) {
-    return normalizeClusterName(element.getAttribute(CONFIG.clusterTargetAttribute)) === switcherName;
+  function isClusterTarget(element, switcherName, config) {
+    return normalizeClusterName(element.getAttribute(config.clusterTargetAttribute)) === switcherName;
   }
 
-  function hasClusterTargetAncestor(element, switcherName, scope) {
+  function hasClusterTargetAncestor(element, switcherName, scope, config) {
     let parent = element.parentElement;
 
     while (parent && parent !== scope) {
-      if (isClusterTarget(parent, switcherName)) return true;
+      if (isClusterTarget(parent, switcherName, config)) return true;
       parent = parent.parentElement;
     }
 
     return false;
   }
 
-  function findClusterTargets(scope, switcherName) {
-    return Array.from(scope.querySelectorAll(`[${CONFIG.clusterTargetAttribute}]`))
-      .filter(target => isClusterTarget(target, switcherName))
-      .filter(target => !hasClusterTargetAncestor(target, switcherName, scope));
+  function findClusterTargets(scope, switcherName, config) {
+    return Array.from(scope.querySelectorAll(`[${config.clusterTargetAttribute}]`))
+      .filter(target => isClusterTarget(target, switcherName, config))
+      .filter(target => !hasClusterTargetAncestor(target, switcherName, scope, config));
   }
 
-  function buildGroups(scope, switcherName, buttons, mode, controller) {
+  function buildGroups(scope, switcherName, buttons, mode, controller, config) {
     if (mode === 'cluster') {
-      const clusterTargets = findClusterTargets(scope, switcherName).filter(target => target !== controller);
+      const clusterTargets = findClusterTargets(scope, switcherName, config).filter(target => target !== controller);
 
       if (clusterTargets.length > buttons.length) {
         warn(
+          config,
           `cluster "${switcherName}" has ${clusterTargets.length} targets for ${buttons.length} buttons; extra targets are not switchable`,
           controller
         );
@@ -210,41 +220,46 @@
 
   function buildInstance(controller) {
     const switcherName = (controller.getAttribute('data-switcher') || '').trim();
+    const config = getConfig(switcherName);
 
     if (!switcherName) {
-      warn('empty data-switcher value; controller skipped', controller);
+      warn(config, 'empty data-switcher value; controller skipped', controller);
       return null;
     }
 
     if (!safeNamePattern.test(switcherName)) {
-      warn(`invalid data-switcher value "${switcherName}"; controller skipped`, controller);
+      warn(config, `invalid data-switcher value "${switcherName}"; controller skipped`, controller);
+      return null;
+    }
+
+    if (config.enabled === false) {
       return null;
     }
 
     const buttons = getButtons(controller);
     if (!buttons.length) {
-      warn(`no buttons found for "${switcherName}"; controller skipped`, controller);
+      warn(config, `no buttons found for "${switcherName}"; controller skipped`, controller);
       return null;
     }
 
-    const mode = getMode(controller);
+    const mode = getMode(controller, config);
 
     if (mode !== 'class-index' && mode !== 'cluster') {
-      warn(`unsupported mode "${mode}" for "${switcherName}"; controller skipped`, controller);
+      warn(config, `unsupported mode "${mode}" for "${switcherName}"; controller skipped`, controller);
       return null;
     }
 
-    const scope = getScope(controller, mode);
-    const groups = buildGroups(scope, switcherName, buttons, mode, controller);
+    const scope = getScope(controller, mode, config);
+    const groups = buildGroups(scope, switcherName, buttons, mode, controller, config);
 
     const foundTargetCount = groups.reduce((count, group) => count + group.targets.length, 0);
     if (foundTargetCount === 0) {
-      warn(`no targets found for "${switcherName}"`, controller);
+      warn(config, `no targets found for "${switcherName}"`, controller);
     }
 
     const missingGroups = groups.filter(group => !group.targets.length).map(group => group.index);
     if (missingGroups.length) {
-      warn(`missing targets for "${switcherName}" indexes: ${missingGroups.join(', ')}`, controller);
+      warn(config, `missing targets for "${switcherName}" indexes: ${missingGroups.join(', ')}`, controller);
     }
 
     const instance = {
@@ -253,7 +268,8 @@
       controller,
       scope,
       groups,
-      activeIndex: normalizeIndex(CONFIG.defaultIndex, groups.length)
+      config,
+      activeIndex: normalizeIndex(config.defaultIndex, groups.length)
     };
 
     controller.classList.add(SELECTORS.controller);
