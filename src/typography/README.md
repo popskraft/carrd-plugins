@@ -13,13 +13,15 @@ Turns `.txt` content into cleaner typography with Markdown-like parsing.
 - `#`, `##`, `###`, and `####` become headings.
 - `-` and `1.` become lists.
 - `---` becomes a horizontal rule.
+- HTML `table` inside `.txt` gets typography table styles.
 - The plugin applies the matching theme classes to the parsed content.
 
 ## How To Check That It Works
 
 1. Publish or refresh the page.
 2. Confirm headings and lists render with the intended styles.
-3. If nothing changes, check that the class is exactly `txt`.
+3. Confirm any HTML table inside `.txt` has the styled borders and spacing.
+4. If nothing changes, check that the class is exactly `txt`.
 
 ## Example Content
 
@@ -101,4 +103,4 @@ Use a separate hidden `Head` `<style>` block after `theme-design-system.html` an
 }
 ```
 
-Typography uses shared theme tokens from `theme-design-system.html`. Headings inherit `--theme-color-headlines`, and horizontal rules use `--theme-color-border`.
+Typography uses shared theme tokens from `theme-design-system.html`. Headings inherit `--theme-color-headlines`, and horizontal rules plus table borders use `--theme-color-border`.

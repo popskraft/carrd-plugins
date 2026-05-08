@@ -7,8 +7,8 @@
   font-weight: 500;
   line-height: 1.3;
   color: var(--theme-color-headlines, #19355A);
-  margin-top: 1.25em;
-  margin-bottom: 0.5em;
+  margin-top: 2em;
+  margin-bottom: 1em;
 }
 
 .theme-typography-h1:first-child,
@@ -86,4 +86,34 @@
 .txt p > img {
   max-width: 100%;
   height: auto;
+}
+
+/* Spec table */
+.txt table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85em;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.txt table th,
+.txt table td {
+  padding: 0.55em 0.75em;
+  border-bottom: 1px solid var(--theme-color-border, #efefef);
+  text-align: left;
+  vertical-align: top;
+}
+
+.txt table th {
+  font-weight: 600;
+  color: var(--theme-color-headlines, #19355A);
+}
+
+.txt table thead tr {
+  border-bottom: 2px solid var(--theme-color-border, #efefef);
+}
+
+.txt table tbody tr:last-child td {
+  border-bottom: none;
 }
