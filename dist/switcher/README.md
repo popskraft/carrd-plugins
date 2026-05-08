@@ -83,6 +83,7 @@ You can replace `pricing` with any simple name.
 - The plugin maps by button order, not by Carrd's `n01` or `n02` classes.
 - If numbered classes (`name-1`, `name-2`) exist, they are used and shared class is ignored.
 - If no numbered classes exist, all elements with the shared class (`name`) are used in DOM order.
+- If a target class is present on both an outer Carrd container and nested elements, the plugin switches the outer container and ignores nested matches.
 
 **Shared class example:**
 
@@ -280,6 +281,18 @@ Numbered classes (one button controls a section plus an extra note):
 <p class="page-mode-1">Extra note for mode 1</p>
 <section class="page-mode-2">...</section>
 ```
+
+For Carrd containers, put the class on the outer `container-component` when the whole block should switch:
+
+```html
+<div class="container-component pricing-1">
+    <div class="wrapper"><div class="inner">
+        <h2 class="pricing-1">Plan 1</h2>
+    </div></div>
+</div>
+```
+
+Even if the same class also appears on nested text or image elements, Switcher targets the outer container.
 
 ## Advanced: Multiple Switchers
 

@@ -70,23 +70,27 @@
 
   function findClassTargets(scope, switcherName, index) {
     const targetClass = `${switcherName}-${index}`;
-    return Array.from(scope.querySelectorAll(`.${cssEscape(targetClass)}`));
+    return findClassTargetsByClass(scope, targetClass);
   }
 
-  function hasSharedClassAncestor(element, switcherName, scope) {
+  function hasClassAncestor(element, className, scope) {
     let parent = element.parentElement;
 
     while (parent && parent !== scope) {
-      if (parent.classList && parent.classList.contains(switcherName)) return true;
+      if (parent.classList && parent.classList.contains(className)) return true;
       parent = parent.parentElement;
     }
 
     return false;
   }
 
+  function findClassTargetsByClass(scope, className) {
+    return Array.from(scope.querySelectorAll(`.${cssEscape(className)}`))
+      .filter(target => !hasClassAncestor(target, className, scope));
+  }
+
   function findSharedClassTargets(scope, switcherName) {
-    return Array.from(scope.querySelectorAll(`.${cssEscape(switcherName)}`))
-      .filter(target => !hasSharedClassAncestor(target, switcherName, scope));
+    return findClassTargetsByClass(scope, switcherName);
   }
 
   function normalizeClusterName(value) {
