@@ -176,11 +176,19 @@
     });
   }
 
+  function getInstancesByName(name) {
+    return Array.from(instances.values()).filter(instance => instance.name === name);
+  }
+
+  function setActiveIndexByName(name, index) {
+    getInstancesByName(name).forEach(instance => setActiveIndex(instance, index));
+  }
+
   function handleButtonClick(instance, index, event) {
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
-    setActiveIndex(instance, index);
+    setActiveIndexByName(instance.name, index);
   }
 
   function buildInstance(controller) {
@@ -285,19 +293,19 @@
     show: function(controllerOrName, index) {
       const instance = resolveInstance(controllerOrName);
       if (!instance) return;
-      setActiveIndex(instance, index);
+      setActiveIndexByName(instance.name, index);
     },
     next: function(controllerOrName) {
       const instance = resolveInstance(controllerOrName);
       if (!instance) return;
       const nextIndex = instance.activeIndex >= instance.groups.length ? 1 : instance.activeIndex + 1;
-      setActiveIndex(instance, nextIndex);
+      setActiveIndexByName(instance.name, nextIndex);
     },
     prev: function(controllerOrName) {
       const instance = resolveInstance(controllerOrName);
       if (!instance) return;
       const prevIndex = instance.activeIndex <= 1 ? instance.groups.length : instance.activeIndex - 1;
-      setActiveIndex(instance, prevIndex);
+      setActiveIndexByName(instance.name, prevIndex);
     }
   };
 

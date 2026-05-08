@@ -295,6 +295,18 @@ Use a unique `data-switcher` name for each independent switcher on the same page
 <p class="features-2">Advanced features</p>
 ```
 
+Use the same `data-switcher` name when two or more button lists should control the same state from different places on the page. For example, a top tab bar and a bottom tab bar can both use `data-switcher="switcher"`. Clicking either one updates all button lists with that name and switches the matching targets in each local section.
+
+```html
+<ul class="buttons-component" data-switcher="switcher">...</ul>
+<p class="switcher-1">Top state 1</p>
+<p class="switcher-2">Top state 2</p>
+
+<ul class="buttons-component" data-switcher="switcher">...</ul>
+<p class="switcher-1">Bottom state 1</p>
+<p class="switcher-2">Bottom state 2</p>
+```
+
 ## Advanced: API
 
 The plugin exposes:
