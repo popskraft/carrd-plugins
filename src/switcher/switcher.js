@@ -73,8 +73,20 @@
     return Array.from(scope.querySelectorAll(`.${cssEscape(targetClass)}`));
   }
 
+  function hasSharedClassAncestor(element, switcherName, scope) {
+    let parent = element.parentElement;
+
+    while (parent && parent !== scope) {
+      if (parent.classList && parent.classList.contains(switcherName)) return true;
+      parent = parent.parentElement;
+    }
+
+    return false;
+  }
+
   function findSharedClassTargets(scope, switcherName) {
-    return Array.from(scope.querySelectorAll(`.${cssEscape(switcherName)}`));
+    return Array.from(scope.querySelectorAll(`.${cssEscape(switcherName)}`))
+      .filter(target => !hasSharedClassAncestor(target, switcherName, scope));
   }
 
   function normalizeClusterName(value) {
@@ -135,7 +147,8 @@
     }
 
     // Fall back to shared class (.pricing) — DOM order = index
-    const sharedTargets = findSharedClassTargets(scope, switcherName);
+    const sharedTargets = findSharedClassTargets(scope, switcherName)
+      .filter(target => target !== controller);
     return buttons.map((button, index) => ({
       index: index + 1,
       button,
