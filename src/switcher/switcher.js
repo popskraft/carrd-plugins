@@ -73,6 +73,10 @@
     return Array.from(scope.querySelectorAll(`.${cssEscape(targetClass)}`));
   }
 
+  function findSharedClassTargets(scope, switcherName) {
+    return Array.from(scope.querySelectorAll(`.${cssEscape(switcherName)}`));
+  }
+
   function normalizeClusterName(value) {
     return (value || '')
       .trim()
@@ -119,10 +123,23 @@
       }));
     }
 
-    return buttons.map((button, index) => ({
+    // Try indexed classes first (.pricing-1, .pricing-2…) — backward compat
+    const indexedGroups = buttons.map((button, index) => ({
       index: index + 1,
       button,
       targets: findClassTargets(scope, switcherName, index + 1)
+    }));
+
+    if (indexedGroups.some(g => g.targets.length > 0)) {
+      return indexedGroups;
+    }
+
+    // Fall back to shared class (.pricing) — DOM order = index
+    const sharedTargets = findSharedClassTargets(scope, switcherName);
+    return buttons.map((button, index) => ({
+      index: index + 1,
+      button,
+      targets: sharedTargets[index] ? [sharedTargets[index]] : []
     }));
   }
 
