@@ -103,6 +103,7 @@ Plugin README files include `:root { ... }` examples for optional overrides.
 | **No-loadwaiting** | `dist/no-loadwaiting/` |
 | **Shopping Cart** | `dist/shopping-cart/` |
 | **Slider** | `dist/slider/` |
+| **Switcher** | `dist/switcher/` |
 | **Typography** | `dist/typography/` |
 
 Each plugin folder contains:
