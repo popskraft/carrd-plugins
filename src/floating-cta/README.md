@@ -1,48 +1,66 @@
 # Floating CTA
 
-Creates a fixed CTA clone that appears after the page is scrolled past a threshold.
+Clones an existing CTA element and shows the clone as a fixed overlay after the visitor scrolls past a threshold.
 
-Use this plugin only on pages where that extra CTA should appear independently. If your main header already stays visible with `header-fixed`, do not use the same CTA here or you will intentionally see both versions.
+Use this plugin only on pages where the original CTA scrolls away. If your header already stays fixed with `header-fixed`, do not add the same CTA here — both versions will appear at the same time.
 
-## What You Do in Carrd
+---
 
-1. Create the original CTA block you want to clone.
-2. Give that block a unique ID.
-3. Use `site-header-cta` if you want the default setup with no extra config.
-4. Add the plugin embed to `Body End`.
-5. Publish the page and scroll down to test the reveal.
+## Installation
 
-## How It Works in Carrd
+### CDN Bundle (recommended)
 
-- The plugin clones one CTA block by ID.
-- The clone is appended to `body`.
-- It stays hidden until the page reaches the configured scroll threshold.
-- On mobile, the clone is centered across the screen.
+If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
 
-## How To Check That It Works
+To install CDN embeds: see `dist/README.md` → CDN Bundle section.
+
+### Inline Embed (single plugin)
+
+Use this when installing only selected plugins without the CDN bundle.
+
+**Step 1 — Install theme header (once per site)**
+
+1. Open `theme-design-system.html` from the `dist/` folder.
+2. Copy the full contents.
+3. In Carrd: `Add Element → Embed → Code → Hidden → Head` and paste.
+
+**Step 2 — Install this plugin**
+
+1. Open `floating-cta-embed.html` from this folder.
+2. Copy the full contents.
+3. In Carrd: `Add Element → Embed → Code → Hidden → Body End` and paste.
+4. Publish the page and refresh.
+
+---
+
+## Setup
+
+1. Create the original CTA element on the page.
+2. Open its settings and assign a unique ID — use `site-header-cta` for the default setup with no extra config.
+3. The plugin clones this element automatically and shows the clone as a fixed overlay on scroll.
+
+---
+
+## How to Verify
 
 1. Publish the page.
-2. Confirm the source CTA has the expected ID.
-3. Scroll below the configured threshold.
-4. Confirm the floating CTA appears.
-5. If the CTA contains hash links, confirm the clone still triggers the original target correctly.
-
-## Troubleshooting
+2. Scroll past the configured threshold.
+3. The floating CTA should appear.
 
 If nothing appears:
+- check that the source element has the expected ID
+- check that the embed is placed in **Body End**
+- check that the page has been scrolled past the threshold
 
-1. check that the source CTA has the expected ID
-2. check that the embed code is present in `Body End`
-3. check that the page has been scrolled past the configured threshold
+If two copies appear, remove this plugin from pages where the original CTA already stays visible.
 
-If you see two copies of the same CTA:
-
-1. remove this plugin from pages where the original CTA already remains visible
-2. or use a different source CTA for the floating version
+---
 
 ## Configuration
 
-Most pages can use the default setup:
+Most pages can use the default setup with no changes.
+
+Add a **Code** embed and paste this block **above** the plugin embed to change the source ID or scroll threshold:
 
 ```html
 <script>
@@ -55,18 +73,23 @@ window.CarrdPluginOptions = {
 </script>
 ```
 
-If using a config script, place it in `Body End` above the plugin embed.
+If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds.
 
-## Options
+### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|
-| `sourceId` | `'site-header-cta'` | ID of the source CTA element to clone |
-| `scrollY` | `800` | Scroll position in px where the floating CTA becomes visible |
+| `sourceId` | `site-header-cta` | ID of the source element to clone |
+| `scrollY` | `800` | Scroll position in px where the floating CTA appears |
 
-## CSS Variables
+---
 
-```css
+## Design
+
+Add a **Code** embed with a `<style>` tag and override any of these variables:
+
+```html
+<style>
 :root {
     --theme-floating-cta-top: 0rem;
     --theme-floating-cta-right: 1.25rem;
@@ -75,4 +98,14 @@ If using a config script, place it in `Body End` above the plugin embed.
     --theme-floating-cta-fade-duration: 0.3s;
     --theme-floating-cta-move-duration: 0.45s;
 }
+</style>
 ```
+
+| Variable | Default | What it changes |
+|----------|---------|-----------------|
+| `--theme-floating-cta-top` | `0rem` | Distance from the top edge |
+| `--theme-floating-cta-right` | `1.25rem` | Distance from the right edge |
+| `--theme-floating-cta-z-index` | `99999` | Stack order |
+| `--theme-floating-cta-offset` | `24px` | Offset from the viewport edge on mobile |
+| `--theme-floating-cta-fade-duration` | `0.3s` | Fade animation duration |
+| `--theme-floating-cta-move-duration` | `0.45s` | Slide animation duration |

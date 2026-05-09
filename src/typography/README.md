@@ -1,106 +1,124 @@
 # Typography
 
-Turns `.txt` content into cleaner typography with Markdown-like parsing.
+Turns a `.txt` container into cleaner text with Markdown-like parsing. Use headings, lists, and rules in plain text — no HTML needed.
 
-## What You Do in Carrd
+---
 
-1. Add class `txt` to a Text element or text container.
-2. Write headings, lists, and horizontal rules using simple Markdown-like syntax.
-3. Keep the content inside Carrd paragraph spans, which are `span.p` by default.
+## Installation
 
-## How It Works in Carrd
+### CDN Bundle (recommended)
 
-- `#`, `##`, `###`, and `####` become headings.
-- `-` and `1.` become lists.
-- `---` becomes a horizontal rule.
-- HTML `table` inside `.txt` gets typography table styles.
-- The plugin applies the matching theme classes to the parsed content.
+If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
 
-## How To Check That It Works
+To install CDN embeds: see `dist/README.md` → CDN Bundle section.
+
+### Inline Embed (single plugin)
+
+Use this when installing only selected plugins without the CDN bundle.
+
+**Step 1 — Install theme header (once per site)**
+
+1. Open `theme-design-system.html` from the `dist/` folder.
+2. Copy the full contents.
+3. In Carrd: `Add Element → Embed → Code → Hidden → Head` and paste.
+
+**Step 2 — Install this plugin**
+
+1. Open `typography-embed.html` from this folder.
+2. Copy the full contents.
+3. In Carrd: `Add Element → Embed → Code → Hidden → Body End` and paste.
+4. Publish the page and refresh.
+
+---
+
+## Setup
+
+1. Add a **Text** element or **Container** to your page.
+2. Open its class panel and add the class `txt`.
+3. Write your content using the syntax below.
+
+### Syntax
+
+| What you type | What appears |
+|---------------|-------------|
+| `# Heading` | H1 |
+| `## Heading` | H2 |
+| `### Heading` | H3 |
+| `#### Heading` | H4 |
+| `---` | Horizontal rule |
+| `- Item` | Unordered list item |
+| `1. Item` | Ordered list item |
+
+An HTML `<table>` inside `.txt` gets typography table styles automatically.
+
+---
+
+## How to Verify
 
 1. Publish or refresh the page.
 2. Confirm headings and lists render with the intended styles.
-3. Confirm any HTML table inside `.txt` has the styled borders and spacing.
-4. If nothing changes, check that the class is exactly `txt`.
+3. Confirm any table inside `.txt` has styled borders and spacing.
 
-## Example Content
-
-Paste text like this into your `.txt` block:
-
-```text
-# Main Heading
-
-## Section Heading
-
-- First item
-- Second item
-
-1. Step one
-2. Step two
+If nothing changes, check that the class is exactly `txt`.
 
 ---
-```
-
-## Syntax Reference
-
-| Markdown Syntax | HTML Output |
-|-----------------|-------------|
-| `# Heading` | `<h1>Heading</h1>` |
-| `## Heading` | `<h2>Heading</h2>` |
-| `### Heading` | `<h3>Heading</h3>` |
-| `#### Heading` | `<h4>Heading</h4>` |
-| `---` | `<hr>` |
-| `- Item` | `<ul><li>Item</li></ul>` |
-| `1. Item` | `<ol><li>Item</li></ol>` |
 
 ## Configuration
 
-Use this only if you want to change the selectors or class names.
+No configuration is needed for normal use.
+
+Add a **Code** embed and paste this block **above** the plugin embed if you want to change the selectors:
 
 ```html
 <script>
 window.CarrdPluginOptions = {
     typography: {
         containerSelector: '.txt',
-        paragraphSelector: 'span.p',
-        headingClasses: { h1: 'theme-typography-h1', h2: 'theme-typography-h2', h3: 'theme-typography-h3', h4: 'theme-typography-h4' },
-        listClasses: { ul: 'theme-typography-ul', ol: 'theme-typography-ol', li: 'theme-typography-li' },
-        hrClass: 'theme-typography-hr'
+        paragraphSelector: 'span.p'
     }
 };
 </script>
 ```
 
-## Options
+If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds.
+
+### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|
 | `containerSelector` | `.txt` | Selector for text containers |
 | `paragraphSelector` | `span.p` | Selector for paragraph spans |
-| `headingClasses` | `{ h1: 'theme-typography-h1', ... }` | CSS classes for headings |
-| `listClasses` | `{ ul: 'theme-typography-ul', ... }` | CSS classes for lists |
-| `hrClass` | `'theme-typography-hr'` | CSS class for horizontal rules |
+| `headingClasses` | `{ h1: 'theme-typography-h1', ... }` | CSS classes applied to headings |
+| `listClasses` | `{ ul: 'theme-typography-ul', ... }` | CSS classes applied to lists |
+| `hrClass` | `theme-typography-hr` | CSS class applied to horizontal rules |
 
-## Advanced: JavaScript API
+---
 
-You can ignore this unless you are re-initializing text blocks from custom code.
+## Design
 
-```javascript
-CarrdTypography.init();
+Add a **Code** embed with a `<style>` tag and override any of these variables:
 
-const el = document.querySelector('.txt');
-CarrdTypography.process(el);
-```
-
-## Advanced: CSS Variables
-
-Use a separate hidden `Head` `<style>` block after `theme-design-system.html` and place your overrides there.
-
-```css
+```html
+<style>
 :root {
     --theme-color-headlines: #19355A;
     --theme-color-border: #efefef;
 }
+</style>
 ```
 
-Typography uses shared theme tokens from `theme-design-system.html`. Headings inherit `--theme-color-headlines`, and horizontal rules plus table borders use `--theme-color-border`.
+| Variable | Default | What it changes |
+|----------|---------|-----------------|
+| `--theme-color-headlines` | `#19355A` | Heading color |
+| `--theme-color-border` | `#efefef` | Horizontal rule and table border color |
+
+---
+
+## API
+
+Use only if you need to re-initialize text blocks from a custom embed:
+
+```javascript
+CarrdTypography.init();
+CarrdTypography.process(element);
+```

@@ -6,6 +6,33 @@ No coding required for basic use. Connect buttons to targets by adding a custom 
 
 ---
 
+## Installation
+
+### CDN Bundle (recommended)
+
+If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
+
+To install CDN embeds: see `dist/README.md` → CDN Bundle section.
+
+### Inline Embed (single plugin)
+
+Use this when installing only selected plugins without the CDN bundle.
+
+**Step 1 — Install theme header (once per site)**
+
+1. Open `theme-design-system.html` from the `dist/` folder.
+2. Copy the full contents.
+3. In Carrd: `Add Element → Embed → Code → Hidden → Head` and paste.
+
+**Step 2 — Install this plugin**
+
+1. Open `switcher-embed.html` from this folder.
+2. Copy the full contents.
+3. In Carrd: `Add Element → Embed → Code → Hidden → Body End` and paste.
+4. Publish the page and refresh.
+
+---
+
 ## Setup: Class Mode
 
 **Option A — shared class (one element per button):**
@@ -30,7 +57,7 @@ You can replace `pricing` with any simple name.
 
 ## Setup: Cluster Mode
 
-Use cluster mode when you want to switch whole sections or containers by order.
+Use cluster mode when you want to switch whole containers by order.
 
 1. Add a **Buttons** element and set two attributes:
    - `data-switcher=cases`
@@ -39,7 +66,7 @@ Use cluster mode when you want to switch whole sections or containers by order.
    - `data-switcher-cluster=cases`
 3. Order decides the mapping: first target → first button, second → second.
 
-Place the Buttons element **outside** the sections or containers you are switching. If the buttons end up inside a hidden section, they will disappear too.
+Place the Buttons element **outside** the containers you are switching. If the buttons end up inside a hidden container, they will disappear too.
 
 ---
 
@@ -107,7 +134,7 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 | `scopeSelector` | `section` | Parent scope used to find class-mode targets |
 | `modeAttribute` | `data-switcher-mode` | Attribute used to select `class-index` or `cluster` |
 | `clusterTargetAttribute` | `data-switcher-cluster` | Attribute used by cluster mode targets |
-| `clusterScopeSelector` | `.site-main` | Parent scope used to find cluster targets |
+| `clusterScopeSelector` | `.site-main` | Parent scope used to find cluster targets. Change this if your Buttons element and cluster targets do not share `.site-main` as a common parent. |
 | `instances` | `{}` | Per-`data-switcher` option overrides |
 
 ---
