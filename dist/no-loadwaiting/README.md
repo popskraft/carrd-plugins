@@ -3,7 +3,7 @@
 ## Version
 
 - Version: `0.1.21`
-- Build date (UTC): `2026-05-08`
+- Build date (UTC): `2026-05-15`
 
 ## Installation
 
@@ -12,6 +12,26 @@
 If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
 
 To install CDN embeds: see the root `README.md` → **CDN Bundle** section.
+
+### CDN Individual (single plugin)
+
+Use this when you want jsDelivr links for selected plugins instead of the full bundle.
+
+**Step 1 — Install shared theme header (once per site)**
+
+In Carrd add `Embed → Code → Hidden → Head` and paste:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-design-tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-ui.css">
+```
+
+**Step 2 — Install this plugin through CDN**
+
+1. Open `no-loadwaiting-cdn.html` from this folder.
+2. Paste the `<!-- Head -->` part into `Hidden → Head`.
+3. Paste the `<!-- Body End -->` part into `Hidden → Body End` when present.
+4. Publish the page and refresh.
 
 ### Inline Embed (single plugin)
 

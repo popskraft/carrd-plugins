@@ -4,18 +4,18 @@ Ready-to-use plugins for Carrd pages.
 
 ## Install Paths
 
-Two ways to install this plugin bundle:
+Three ways to install plugins:
 
-| | CDN Bundle | Inline Embed |
-|---|---|---|
-| **What it is** | Two external links served via jsDelivr | Individual HTML blocks pasted into Carrd |
-| **When to use** | Primary path — recommended for all new sites | When you need only specific plugins, or CDN is not available |
-| **Embeds in Carrd** | 3 total | 1 per plugin + theme header |
-| **Update on new release** | Run `npm run deploy` → purge cache | Re-paste updated embed files |
+| | CDN Bundle | CDN Individual | Inline Embed |
+|---|---|---|---|
+| **What it is** | Two external links served via jsDelivr | jsDelivr links for selected plugins | Individual HTML blocks pasted into Carrd |
+| **When to use** | Primary path — recommended for all new sites | When you need only specific plugins but still want CDN updates | When CDN is not available |
+| **Embeds in Carrd** | 3 total | Shared theme links + 1–2 embeds per plugin | 1 per plugin + theme header |
+| **Update on new release** | Run `npm run deploy` → purge cache | Run `npm run deploy` → purge cache for changed files | Re-paste updated embed files |
 
 ## CDN Bundle (Recommended)
 
-Add two embeds to your Carrd site — that's all.
+Use one helper file to copy both required snippets quickly: `dist/theme-core-cdn.html`.
 
 ### Step 1 — Head embed
 
@@ -36,6 +36,39 @@ In Carrd: `Add Element → Embed → Code → Hidden → Body End`
 > `theme-core.min.css` includes design tokens, shared UI styles, and all bundle plugin CSS.
 > `theme-core.min.js` includes plugin defaults and all bundle plugin JS.
 > Bundle composition is controlled by `bundle.config.json`.
+
+## CDN Individual (Per-Plugin)
+
+Use this when you want selected plugins through jsDelivr instead of the full `theme-core` bundle.
+
+### Step 1 — Shared Head embed
+
+In Carrd: `Add Element → Embed → Code → Hidden → Head`
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-design-tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-ui.css">
+```
+
+### Step 2 — Plugin CDN file
+
+For each selected plugin, open its folder and use one file: `*-cdn.html`.
+
+Inside that file:
+- Paste the `<!-- Head -->` part into `Hidden → Head`.
+- Paste the `<!-- Body End -->` part into `Hidden → Body End` when present.
+
+Example (`dist/faq/faq-cdn.html`):
+
+```html
+<!-- Head -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/faq/faq.min.css">
+
+<!-- Body End -->
+<script src="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/faq/faq.min.js"></script>
+```
+
+> `no-loadwaiting` has only a `Head` script block in `no-loadwaiting-cdn.html`, because it must run before Carrd loader completion.
 
 ### Local overrides (per-site)
 
@@ -110,6 +143,7 @@ Each plugin folder contains:
 
 - `README.md` — setup guide for that plugin
 - `<plugin>-embed.html` — ready code block for Carrd
+- `<plugin>-cdn.html` — CDN install snippets with `Head`/`Body End` split
 - `*.min.css` / `*.min.js` — distributive files
 
 ## Quick Carrd Guide

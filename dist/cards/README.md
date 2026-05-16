@@ -3,7 +3,7 @@
 ## Version
 
 - Version: `0.1.21`
-- Build date (UTC): `2026-05-08`
+- Build date (UTC): `2026-05-15`
 
 ## Installation
 
@@ -12,6 +12,26 @@
 If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
 
 To install CDN embeds: see the root `README.md` → **CDN Bundle** section.
+
+### CDN Individual (single plugin)
+
+Use this when you want jsDelivr links for selected plugins instead of the full bundle.
+
+**Step 1 — Install shared theme header (once per site)**
+
+In Carrd add `Embed → Code → Hidden → Head` and paste:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-design-tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-ui.css">
+```
+
+**Step 2 — Install this plugin through CDN**
+
+1. Open `cards-cdn.html` from this folder.
+2. Paste the `<!-- Head -->` part into `Hidden → Head`.
+3. Paste the `<!-- Body End -->` part into `Hidden → Body End` when present.
+4. Publish the page and refresh.
 
 ### Inline Embed (single plugin)
 
@@ -50,44 +70,53 @@ Place that style block below `theme-design-system.html`.
 
 ---
 
-Turns a `.cards` container into styled card items.
+Turns a Carrd container into styled card items. Each child of the container becomes a separate card with its own background, border, and padding.
 
-## What You Do in Carrd
+No coding required. Add one class and style the container — the plugin copies styles to each card automatically.
 
-1. Add class `cards` to the container.
-2. Open **Appearance** for that container and set **Padding** — this becomes the inner spacing of every card.
-3. Style the container normally (background color, border, border-radius, shadow) — the plugin copies those styles onto each card automatically.
+---
 
-## How It Works
+## Setup
 
-- Each direct item inside `.cards` becomes a separate card block wrapped in a `div.theme-card-item`.
-- The container's padding is read and transferred to `--theme-card-padding` on each card. The original outer padding is then removed so the wrapper itself stays flush.
-- Background, border, border-radius, and box-shadow are cloned from the container to each card. The container itself is set to transparent.
-- Different containers are independent — each reads its own padding and styles.
+1. Add a **Container** element and place your card content inside it.
+2. Open its class panel and add the class `cards`.
+3. In **Appearance**, set **Padding** — this becomes the inner spacing of every card.
+4. Set background color, border, border-radius, and shadow on the container — the plugin copies these to each card automatically.
 
-## How To Check That It Works
+Different containers are independent — each reads its own padding and styles.
+
+---
+
+## How to Verify
 
 1. Publish or refresh the page.
-2. Confirm the items inside `.cards` look like separate cards.
-3. If nothing changes, check that the class name is exactly `cards`.
+2. The items inside `.cards` should appear as separate cards.
+3. Resize to mobile and confirm cards stack vertically.
+
+If nothing changes, check that the class is exactly `cards`.
+
+---
 
 ## Configuration
 
-Only needed to change the default selector or fallback card background.
+No configuration is needed for normal use.
+
+Add a **Code** embed and paste this block **above** the plugin embed if you want to change default behavior:
 
 ```html
 <script>
 window.CarrdPluginOptions = {
     cards: {
         enabled: true,
-        cardSelector: '.cards',
-        defaultCardBg: 'var(--theme-card-bg-default)'
+        cardSelector: '.cards'
     }
 };
 </script>
 ```
 
-## Options
+If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds.
+
+### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|
@@ -95,27 +124,40 @@ window.CarrdPluginOptions = {
 | `cardSelector` | `.cards` | Selector for card containers |
 | `defaultCardBg` | CSS variable | Fallback background when container has no background |
 
-## Advanced: Data Attributes
+---
+
+## Advanced: Per-Card Color
+
+Add these attributes to the container in Carrd's attributes panel:
 
 | Attribute | What it does |
 |-----------|--------------|
-| `data-color` | Background color for all cards in the container |
-| `data-color-1`, `data-color-2`... | Per-card background color override |
-| `data-border-color-1`, `data-border-color-2`... | Per-card border color override |
+| `data-color=VALUE` | Background color for all cards in the container |
+| `data-color-1=VALUE`, `data-color-2=VALUE`... | Per-card background color override |
+| `data-border-color-1=VALUE`, `data-border-color-2=VALUE`... | Per-card border color override |
 
-## Advanced: CSS Variables
+---
 
-Override in a hidden `Head` `<style>` block placed after `theme-design-system.html`.
+## Design
 
-```css
+Add a **Code** embed with a `<style>` tag and override any of these variables:
+
+```html
+<style>
 :root {
     --theme-card-bg-default: var(--theme-color-primary-light);
     --theme-card-border-radius: 0;
     --theme-card-padding: 2rem;
     --theme-card-padding-mobile: 1rem;
 }
+</style>
 ```
 
-`--theme-card-padding` is set automatically from the container padding. Only override it manually if you need a fixed value regardless of what Carrd sets.
+| Variable | Default | What it changes |
+|----------|---------|-----------------|
+| `--theme-card-bg-default` | primary light color | Fallback card background |
+| `--theme-card-border-radius` | from container | Card corner radius |
+| `--theme-card-padding` | from container | Card inner padding |
+| `--theme-card-padding-mobile` | not set | Mobile padding (only when different from desktop) |
 
-`--theme-card-padding-mobile` is never set by the plugin — use it only when you need a mobile padding different from desktop.
+`--theme-card-padding` is set automatically from the container padding. Only override it manually if you need a fixed value regardless of what Carrd sets.

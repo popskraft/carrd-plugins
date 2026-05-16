@@ -3,7 +3,7 @@
 ## Version
 
 - Version: `0.1.21`
-- Build date (UTC): `2026-05-08`
+- Build date (UTC): `2026-05-15`
 
 ## Installation
 
@@ -12,6 +12,26 @@
 If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
 
 To install CDN embeds: see the root `README.md` → **CDN Bundle** section.
+
+### CDN Individual (single plugin)
+
+Use this when you want jsDelivr links for selected plugins instead of the full bundle.
+
+**Step 1 — Install shared theme header (once per site)**
+
+In Carrd add `Embed → Code → Hidden → Head` and paste:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-design-tokens.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/popskraft/carrd-plugins@main/dist/theme-ui.css">
+```
+
+**Step 2 — Install this plugin through CDN**
+
+1. Open `slider-cdn.html` from this folder.
+2. Paste the `<!-- Head -->` part into `Hidden → Head`.
+3. Paste the `<!-- Body End -->` part into `Hidden → Body End` when present.
+4. Publish the page and refresh.
 
 ### Inline Embed (single plugin)
 
@@ -50,47 +70,38 @@ Place that style block below `theme-design-system.html`.
 
 ---
 
-Turns consecutive Carrd containers into one responsive slider.
+Turns consecutive Carrd containers into a responsive touch slider. Supports arrows, dots, autoplay, and per-slider settings.
 
-## What You Do in Carrd
+No coding required. Add one class to each container that should become a slide.
 
-1. Create 2 or more Carrd containers that should become slides.
-2. Place those containers one after another with no unrelated blocks between them.
-3. Open each container and go to `Element Settings -> Style -> Classes`.
-4. Add class `slider` to every container in that slider group.
+---
+
+## Setup
+
+1. Add 2 or more **Container** elements that should become slides.
+2. Place them one after another — no unrelated blocks between them.
+3. Open each container, go to **Style → Classes**, and add the class `slider`.
 
 That is enough for the default slider to work.
 
-## How It Works in Carrd
+---
 
-- One `.slider` container = one slide.
-- Consecutive `.slider` containers are grouped into one slider automatically.
-- On mobile, the default layout shows 1 slide.
-- On wider screens, the default layout shows more slides.
-
-Example structure:
-
-```text
-Container 1  class="slider"
-Container 2  class="slider"
-Container 3  class="slider"
-Container 4  class="slider"
-```
-
-## How To Check That It Works
+## How to Verify
 
 1. Publish or refresh the page.
 2. On mobile, swipe the slider left or right.
 3. On desktop, drag the slider with the mouse.
 4. If arrows and dots are enabled, check that they appear and can be clicked.
 
-If nothing moves, the most common reason is that one of the intended slides is missing the `slider` class or the slider containers are not consecutive.
+If nothing moves, the most common reason is that one of the intended slides is missing the `slider` class or the containers are not consecutive.
+
+---
 
 ## Configuration
 
-You do not need configuration for normal use. The slider should work with default settings.
+No configuration is needed for normal use.
 
-Only add this block if you want to change the default behavior.
+Add a **Code** embed and paste this block **above** the plugin embed if you want to change default behavior:
 
 ```html
 <script>
@@ -98,19 +109,17 @@ window.CarrdPluginOptions = {
     slider: {
         autoplay: true,
         breakpoints: {
-            737: { slidesPerView: 2, peek: 0 },
-            1280: { slidesPerView: 3, peek: 0 }
+            737: { slidesPerView: 2 },
+            1280: { slidesPerView: 3 }
         }
     }
 };
 </script>
 ```
 
-Place the options block above the plugin code.
+If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds.
 
-If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds at the bottom of the page.
-
-## Options
+### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|
@@ -124,37 +133,30 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 | `equalHeight` | `true` | Stretches slide wrappers to the same height |
 | `loop` | `false` | Returns to the first slide after the last |
 | `autoplay` | `false` | Auto-advances slides |
-| `autoplayInterval` | `5000` | Delay between autoplay moves |
+| `autoplayInterval` | `5000` | Delay between autoplay moves in ms |
 | `hideOverflow` | `false` | Clips content outside the slider area |
-| `freeScroll` | `true` | Keeps the dragged position instead of snapping immediately |
-| `wheelScroll` | `false` | Lets horizontal mouse wheel or trackpad gestures move the slider |
+| `freeScroll` | `true` | Keeps the dragged position instead of snapping |
+| `wheelScroll` | `false` | Lets horizontal trackpad gestures move the slider |
 | `breakpoints` | `{}` | Changes settings at larger screen widths |
 | `instances` | `{}` | Per-slider overrides using `data-slider-id` |
 
-## Advanced: Per-Instance Settings
+---
 
-If one slider on the page needs different behavior, give the first slide in that cluster a `data-slider-id`.
+## Advanced: Per-Slider Settings
 
-In Carrd, add it as a custom attribute on the first slider container only.
+If one slider needs different behavior, add a custom attribute to the **first container** in that slider cluster:
 
-Carrd example:
+`data-slider-id=reviews`
 
-```html
-<div class="slider" data-slider-id="reviews">...</div>
-<div class="slider">...</div>
-<div class="slider">...</div>
-```
+Then configure it in `instances`:
 
 ```html
 <script>
 window.CarrdPluginOptions = {
     slider: {
-        slidesPerView: 1,
-        gap: 16,
         instances: {
             reviews: {
                 showArrows: false,
-                slidesPerView: 1,
                 breakpoints: {
                     737: { slidesPerView: 2 },
                     1280: { slidesPerView: 3 }
@@ -168,7 +170,7 @@ window.CarrdPluginOptions = {
 
 ### Breakpoints
 
-Use breakpoints when the same slider should show more cards on larger screens:
+Use breakpoints when the same slider should show more slides on larger screens:
 
 ```javascript
 breakpoints: {
@@ -178,44 +180,47 @@ breakpoints: {
 }
 ```
 
-Notes:
+Breakpoint keys are minimum screen widths in px. `peek: 0` gives a clean grid-like layout on larger screens.
 
-- Breakpoint keys are minimum screen widths in px.
-- `737` and `1280` mean screen width in pixels.
-- `peek: 0` is useful when you want a clean grid-like layout on larger screens.
-- `maxSlideWidth` can also be overridden inside a breakpoint if you want tighter desktop cards.
-- `slidesPerView` can be fractional if you want part of the next slide to stay visible.
+---
 
-## Advanced: CSS Variables
+## Design
 
-Use this only if you want to restyle the slider arrows and dots.
+Add a **Code** embed with a `<style>` tag to restyle arrows and dots:
 
-Do not paste these variables into the plugin code block itself.
-
-Create a separate hidden `Head` `<style>` block below `theme-design-system.html` and place your `:root` overrides there.
-
-```css
+```html
+<style>
 :root {
-    --theme-slider-dot-size: var(--theme-ui-dot-size);
-    --theme-slider-dot-bg: var(--theme-ui-dot-bg);
-    --theme-slider-dot-hover-bg: var(--theme-ui-dot-hover-bg);
-    --theme-slider-dot-active-bg: var(--theme-ui-dot-active-bg);
+    --theme-slider-dot-size: 8px;
+    --theme-slider-dot-bg: rgba(0,0,0,0.2);
+    --theme-slider-dot-active-bg: currentColor;
     --theme-slider-dots-margin: 1rem;
-
-    --theme-slider-arrow-size: var(--theme-ui-control-size);
-    --theme-slider-arrow-bg: var(--theme-ui-control-bg);
-    --theme-slider-arrow-color: var(--theme-ui-control-color);
-    --theme-slider-arrow-shadow: var(--theme-ui-control-shadow);
-    --theme-slider-arrow-radius: var(--theme-ui-control-radius);
-    --theme-slider-arrow-icon-size: var(--theme-ui-icon-size);
+    --theme-slider-arrow-size: 2.5rem;
+    --theme-slider-arrow-bg: white;
+    --theme-slider-arrow-color: currentColor;
+    --theme-slider-arrow-radius: 50%;
     --theme-slider-arrow-offset: 0.5rem;
 }
+</style>
 ```
+
+| Variable | Default | What it changes |
+|----------|---------|-----------------|
+| `--theme-slider-dot-size` | UI token | Dot size |
+| `--theme-slider-dot-bg` | UI token | Inactive dot color |
+| `--theme-slider-dot-active-bg` | UI token | Active dot color |
+| `--theme-slider-dots-margin` | `1rem` | Space between dots and slider |
+| `--theme-slider-arrow-size` | UI token | Arrow button size |
+| `--theme-slider-arrow-bg` | UI token | Arrow button background |
+| `--theme-slider-arrow-color` | UI token | Arrow icon color |
+| `--theme-slider-arrow-radius` | UI token | Arrow button corner radius |
+| `--theme-slider-arrow-offset` | `0.5rem` | Arrow distance from slider edge |
+
+---
 
 ## Troubleshooting
 
-- The slider does not start: the `.slider` containers are not consecutive.
-- Only one block moves: one of the intended slides is missing the `.slider` class.
-- Config does not apply: `window.CarrdPluginOptions` was pasted after the plugin code.
-- Instance settings do not work: `data-slider-id` is missing or was added to the wrong slide.
-- Slide content is visibly cut off: try `hideOverflow: false`.
+- Slider does not start: containers are not consecutive, or the `slider` class is missing on one.
+- Config does not apply: `window.CarrdPluginOptions` was placed after the plugin embed.
+- Instance settings do not work: `data-slider-id` is missing or added to the wrong container.
+- Slide content is cut off: try `hideOverflow: false`.
