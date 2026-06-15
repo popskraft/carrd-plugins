@@ -44,7 +44,7 @@ Use this when installing only selected plugins without the CDN bundle.
 | Hamburger on mobile | `site-header header-collapsing` |
 | Sticky and hamburger | `site-header header-fixed header-collapsing` |
 
-4. If using `header-collapsing`, add class `header-mobile-el-collapsing` to every element that should collapse into the hamburger menu. Elements without this class stay visible on mobile.
+4. If using `header-collapsing`, add class `header-mobile-el-collapsing` to every element inside `#header` that should collapse into the hamburger menu. Elements without this class stay visible on mobile.
 
 If you use `header-fixed`, set the container width to **Edge to Edge** or **Full Bleed** in Carrd for the most predictable layout.
 
@@ -73,7 +73,17 @@ If the plugin seems inactive:
 - check that collapsible elements have `header-mobile-el-collapsing`
 - check that the embed is placed in **Body End**
 
-If the menu flashes on load, confirm `theme-design-system.html` is installed in **Head**.
+If the menu flashes on load, add this small guard in **Head** above other plugin embeds:
+
+```html
+<style>
+@media (max-width: 736px) {
+  #header:has(.site-header.header-collapsing:not(.is-header-nav-initialized)) .header-mobile-el-collapsing {
+    display: none !important;
+  }
+}
+</style>
+```
 
 If the header sticks but the width looks wrong, set the container width to **Edge to Edge** or **Full Bleed**.
 

@@ -1,6 +1,6 @@
 .theme-grid {
   --grid-columns: 1;
-  --local-row-gap: var(--theme-grid-row-gap, 1rem);
+  --local-row-gap: var(--gap-override, var(--theme-grid-row-gap, 1rem));
   --local-column-gap: var(--gap-override, var(--theme-grid-column-gap, 1rem));
   --grid-template: repeat(var(--grid-columns), minmax(0, 1fr));
   display: grid;
@@ -11,12 +11,29 @@
 
 @media (max-width: 736px) {
   .theme-grid {
+    --local-row-gap: var(--gap-mobile-override, var(--gap-override, var(--theme-grid-row-gap, 1rem)));
     --local-column-gap: var(--gap-mobile-override, var(--gap-override, var(--theme-grid-column-gap, 1rem)));
+  }
+
+  .theme-grid.grid-sm-1 {
+    --grid-columns: 1;
   }
 
   .theme-grid.grid-sm-2 {
     --grid-columns: 2;
-    --local-row-gap: var(--theme-grid-row-gap, 1rem);
+  }
+
+  .theme-grid.grid-sm-3 { --grid-columns: 3; }
+  .theme-grid.grid-sm-4 { --grid-columns: 4; }
+  .theme-grid.grid-sm-5 { --grid-columns: 5; }
+  .theme-grid.grid-sm-6 { --grid-columns: 6; }
+
+  .theme-grid.grid-sm-2,
+  .theme-grid.grid-sm-3,
+  .theme-grid.grid-sm-4,
+  .theme-grid.grid-sm-5,
+  .theme-grid.grid-sm-6 {
+    --local-row-gap: var(--gap-mobile-override, var(--gap-override, var(--theme-grid-row-gap, 1rem)));
     --local-column-gap: var(--gap-mobile-override, var(--gap-override, var(--theme-grid-column-gap-sm, 0.5rem)));
   }
 }
@@ -29,6 +46,13 @@
   .theme-grid.grid-6 {
     --grid-columns: 2;
   }
+
+  .theme-grid.grid-md-1 { --grid-columns: 1; }
+  .theme-grid.grid-md-2 { --grid-columns: 2; }
+  .theme-grid.grid-md-3 { --grid-columns: 3; }
+  .theme-grid.grid-md-4 { --grid-columns: 4; }
+  .theme-grid.grid-md-5 { --grid-columns: 5; }
+  .theme-grid.grid-md-6 { --grid-columns: 6; }
 }
 
 .container-component.theme-grid-justify,
@@ -42,7 +66,7 @@
 
 @media (min-width: 1025px) {
   .theme-grid {
-    --local-row-gap: var(--theme-grid-row-gap-desktop, 2rem);
+    --local-row-gap: var(--gap-override, var(--theme-grid-row-gap-desktop, 2rem));
     --local-column-gap: var(--gap-override, var(--theme-grid-column-gap-desktop, 1.5rem));
   }
 
@@ -71,6 +95,13 @@
     --grid-columns: 6;
     --local-column-gap: var(--gap-override, var(--theme-grid-column-gap, 1rem));
   }
+
+  .theme-grid.grid-lg-1 { --grid-columns: 1; }
+  .theme-grid.grid-lg-2 { --grid-columns: 2; }
+  .theme-grid.grid-lg-3 { --grid-columns: 3; }
+  .theme-grid.grid-lg-4 { --grid-columns: 4; }
+  .theme-grid.grid-lg-5 { --grid-columns: 5; }
+  .theme-grid.grid-lg-6 { --grid-columns: 6; }
 
   .theme-grid.theme-grid--desktop-widths {
     --grid-template: var(--theme-grid-desktop-template);

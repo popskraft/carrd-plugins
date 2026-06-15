@@ -127,6 +127,7 @@ Plugin README files include `:root { ... }` examples for optional overrides.
 
 | Plugin | Path |
 | :--- | :--- |
+| **Accordeon** | `dist/accordeon/` |
 | **Cards** | `dist/cards/` |
 | **Cookie Banner** | `dist/cookie-banner/` |
 | **FAQ** | `dist/faq/` |

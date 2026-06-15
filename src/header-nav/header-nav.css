@@ -1,6 +1,6 @@
 /* Pre-JS: hide collapsing elements on mobile before script initializes */
 @media (max-width: 736px) {
-  .header-collapsing:not(.is-header-nav-initialized) .header-mobile-el-collapsing {
+  #header:has(.site-header.header-collapsing:not(.is-header-nav-initialized)) .header-mobile-el-collapsing {
     display: none !important;
   }
 }
@@ -100,33 +100,39 @@
   display: inline-flex;
 }
 
-.theme-header-nav.is-mobile.is-collapsible .theme-header-nav-collapse-section {
+.theme-header-nav.is-mobile.is-collapsible .theme-header-nav-collapse-section,
+.theme-header-nav-shell.is-mobile.is-collapsible .theme-header-nav-collapse-section {
+  position: relative;
+  z-index: var(--theme-header-nav-menu-z-index, 1001);
   display: block;
   width: 100%;
   overflow: hidden;
   max-height: 0;
-  transition: max-height var(--theme-header-nav-duration, 300ms) ease;
 }
 
-.theme-header-nav.is-mobile.is-collapsible.is-nav-open .theme-header-nav-collapse-section {
+.theme-header-nav.is-mobile.is-collapsible.is-nav-open .theme-header-nav-collapse-section,
+.theme-header-nav-shell.is-mobile.is-collapsible.is-nav-open .theme-header-nav-collapse-section {
   max-height: var(--theme-header-nav-max-height, 80vh);
 }
 
-.theme-header-nav.is-mobile.is-collapsible .theme-header-nav-collapse-section[aria-hidden="true"] {
+.theme-header-nav.is-mobile.is-collapsible .theme-header-nav-collapse-section[aria-hidden="true"],
+.theme-header-nav-shell.is-mobile.is-collapsible .theme-header-nav-collapse-section[aria-hidden="true"] {
   max-height: 0;
 }
 
-.theme-header-nav.is-mobile.is-collapsible .theme-header-nav-menu {
+.theme-header-nav.is-mobile.is-collapsible .theme-header-nav-menu,
+.theme-header-nav-shell.is-mobile.is-collapsible .theme-header-nav-menu {
+  position: relative;
+  z-index: var(--theme-header-nav-menu-z-index, 1001);
   opacity: 0;
   overflow: hidden;
   padding: 0;
   margin: 0;
   pointer-events: none;
-  transition:
-    opacity var(--theme-header-nav-duration, 300ms) ease;
 }
 
-.theme-header-nav.is-mobile.is-collapsible.is-nav-open .theme-header-nav-menu {
+.theme-header-nav.is-mobile.is-collapsible.is-nav-open .theme-header-nav-menu,
+.theme-header-nav-shell.is-mobile.is-collapsible.is-nav-open .theme-header-nav-menu {
   opacity: 1;
   pointer-events: auto;
   overflow: auto;

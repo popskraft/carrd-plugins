@@ -35,6 +35,18 @@ window.CarrdPluginOptions.faq = {
     defaultOpen: false
 };
 
+/* Accordeon */
+window.CarrdPluginOptions.accordeon = {
+    enabled: true,
+    linkPrefix: '#accordeon-',
+    linkSelector: 'a[href^="#accordeon-"]',
+    targetAttributes: ['data-accordeon', 'data-accorderon'],
+    defaultOpen: false,
+    scrollOnOpen: true,
+    scrollBehavior: 'smooth',
+    scrollBlock: 'start'
+};
+
 /* Cards */
 window.CarrdPluginOptions.cards = {
     enabled: true,

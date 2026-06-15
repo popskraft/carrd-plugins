@@ -3,7 +3,7 @@
 ## Version
 
 - Version: `0.1.21`
-- Build date (UTC): `2026-05-15`
+- Build date (UTC): `2026-06-15`
 
 ## Installation
 
@@ -81,7 +81,7 @@ No extra Carrd setup is required after you install the plugin embed.
 - The page becomes ready immediately instead of waiting on Carrd's default loading delay.
 - Entry animations still work.
 - The plugin keeps watching briefly for late changes, then stops.
-- It also sends an initial resize and scroll pulse, then follow-up resize-only pulses, so layout-sensitive plugins can wake up.
+- It also sends initial and follow-up resize pulses so layout-sensitive plugins can wake up.
 
 ## How To Check That It Works
 

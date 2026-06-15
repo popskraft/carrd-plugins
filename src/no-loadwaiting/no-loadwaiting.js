@@ -90,7 +90,7 @@
       rafId = null;
     }
 
-    dispatchLayoutEvents({ includeScroll: true });
+    dispatchLayoutEvents();
 
     let pulses = 0;
 
@@ -100,7 +100,7 @@
         pulseTimer = null;
         return;
       }
-      dispatchLayoutEvents({ includeScroll: false });
+      dispatchLayoutEvents();
     }, CONFIG.scrollPulseInterval);
 
     let rafPulses = 0;
@@ -109,19 +109,14 @@
         rafId = null;
         return;
       }
-      dispatchLayoutEvents({ includeScroll: false });
+      dispatchLayoutEvents();
       rafId = requestAnimationFrame(rafTick);
     })();
   }
 
-  function dispatchLayoutEvents(options) {
-    const settings = options || {};
-    const includeScroll = settings.includeScroll === true;
+  function dispatchLayoutEvents() {
     try {
       window.dispatchEvent(new Event('resize'));
-      if (includeScroll) {
-        window.dispatchEvent(new Event('scroll'));
-      }
     } catch (e) {
       /* ignore */
     }

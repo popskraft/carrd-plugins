@@ -1,7 +1,7 @@
 ## Version
 
 - Version: `0.1.21`
-- Build date (UTC): `2026-05-15`
+- Build date (UTC): `2026-06-15`
 - [View Changelog](CHANGELOG.md)
 
 ---
@@ -135,6 +135,7 @@ Plugin README files include `:root { ... }` examples for optional overrides.
 
 | Plugin | Path |
 |--------|------|
+| **Accordeon** | `dist/accordeon/` |
 | **Cards** | `dist/cards/` |
 | **Cookie Banner** | `dist/cookie-banner/` |
 | **FAQ** | `dist/faq/` |

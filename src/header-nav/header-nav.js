@@ -11,8 +11,9 @@
   };
 
   const ROOT_SELECTOR = '.container-component.site-header';
+  const HEADER_SCOPE_SELECTOR = '#header';
+  const COLLAPSING_SELECTOR = '.header-mobile-el-collapsing';
   const NAV_SELECTORS = [
-    '.header-mobile-el-collapsing',
     '.theme-header-nav-menu',
     '.links-component'
   ];
@@ -52,6 +53,17 @@
       if (matches.length) return Array.from(matches);
     }
     return [];
+  }
+
+  function resolveHeaderScope(root) {
+    return (root && root.closest && root.closest(HEADER_SCOPE_SELECTOR)) || root;
+  }
+
+  function resolveNavElements(root) {
+    const headerScope = resolveHeaderScope(root);
+    const collapsingMatches = headerScope.querySelectorAll(COLLAPSING_SELECTOR);
+    if (collapsingMatches.length) return Array.from(collapsingMatches);
+    return queryAll(root, NAV_SELECTORS);
   }
 
   function resolveSectionWrap(root) {
@@ -158,7 +170,7 @@
     const sections = sectionWrap && sectionWrap !== root
       ? Array.from(sectionWrap.children)
       : Array.from(root.children).filter(node => node !== root.querySelector(overlaySelector));
-    const navEls = queryAll(root, NAV_SELECTORS);
+    const navEls = resolveNavElements(root);
     const hasNav = navEls.length > 0;
     const stickyShell = resolveStickyShell(root);
     const stickyEnabled = CONFIG.sticky !== false && root.classList.contains('header-fixed');
@@ -227,11 +239,17 @@
 
     const stickyTarget = stickyEnabled ? stickyShell || root : null;
     const spacer = stickyTarget ? ensureSpacer(stickyTarget) : null;
+    const syncShellState = (className, enabled) => {
+      if (!stickyShell || stickyShell === root) return;
+      stickyShell.classList.toggle(className, enabled);
+    };
+    const syncStructuralState = (className, enabled) => {
+      root.classList.toggle(className, enabled);
+      syncShellState(className, enabled);
+    };
     const toggleStickyState = (className, enabled) => {
       root.classList.toggle(className, enabled);
-      if (stickyShell && stickyShell !== root) {
-        stickyShell.classList.toggle(className, enabled);
-      }
+      syncShellState(className, enabled);
     };
 
     const syncMetrics = () => {
@@ -242,7 +260,7 @@
     const setOpen = (isOpen, options = {}) => {
       const { restoreFocus = false } = options;
       if (!toggle || !collapseSections.length || !root.classList.contains(CLASSNAMES.collapsible)) return;
-      root.classList.toggle(CLASSNAMES.open, isOpen);
+      syncStructuralState(CLASSNAMES.open, isOpen);
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       navEls.forEach(navEl => {
         navEl.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -284,7 +302,7 @@
 
     const updateViewport = () => {
       const isMobile = window.innerWidth <= CONFIG.breakpoint;
-      root.classList.toggle(CLASSNAMES.mobile, isMobile);
+      syncStructuralState(CLASSNAMES.mobile, isMobile);
       const stickyTopTarget = stickyTarget || root;
       if (stickyTopTarget !== root) {
         root.style.removeProperty(CSS_VARS.stickyTop);
@@ -330,6 +348,12 @@
       isOpen: () => root.classList.contains(CLASSNAMES.open),
       close: (restoreFocus = false) => setOpen(false, { restoreFocus })
     });
+
+    syncStructuralState(CLASSNAMES.initialized, true);
+    syncStructuralState(CLASSNAMES.collapsible, collapsibleEnabled && hasNav);
+    if (!collapsibleEnabled || !hasNav) {
+      syncStructuralState(CLASSNAMES.open, false);
+    }
 
     updateViewport();
   }

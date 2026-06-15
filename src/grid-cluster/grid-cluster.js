@@ -34,6 +34,7 @@
   const WIDTH_CLASS_MAP = { ...DEFAULTS.widthClasses, ...(externalOptions.widthClasses || {}) };
   const GRID_SELECTOR = GRID_CLASSES.map(cls => `.${cls}`).join(',');
   const WIDTH_CLASSES = Object.keys(WIDTH_CLASS_MAP);
+  const RESPONSIVE_GRID_CLASS_PATTERN = /^grid-(sm|md|lg)-([1-6])$/;
   const requestFrame = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
   let pendingFrame = null;
 
@@ -59,6 +60,27 @@
     return widthClass ? WIDTH_CLASS_MAP[widthClass] : null;
   };
 
+  const getResponsiveGridClasses = cluster => {
+    const responsiveClasses = new Set();
+    cluster.forEach(element => {
+      if (!element || !element.classList) return;
+      element.classList.forEach(className => {
+        if (RESPONSIVE_GRID_CLASS_PATTERN.test(className)) {
+          responsiveClasses.add(className);
+        }
+      });
+    });
+    return Array.from(responsiveClasses);
+  };
+
+  const getDesktopGridSize = (gridSize, responsiveClasses) => {
+    const lgClass = responsiveClasses.find(cls => cls.startsWith('grid-lg-'));
+    if (!lgClass) return gridSize;
+
+    const numeric = parseInt(lgClass.split('-')[2], 10);
+    return Number.isNaN(numeric) ? gridSize : numeric;
+  };
+
   function wrapCluster(cluster, gridSize) {
     if (!cluster.length || !cluster[0].parentNode) return;
 
@@ -68,14 +90,13 @@
 
     const container = document.createElement('div');
     const classList = [SELECTORS.gridContainer];
+    const responsiveClasses = getResponsiveGridClasses(cluster);
 
     if (gridSize && gridSize >= 2) {
       classList.push(`grid-${gridSize}`);
     }
 
-    if (cluster.some(el => el.classList.contains('grid-sm-2'))) {
-      classList.push('grid-sm-2');
-    }
+    classList.push(...responsiveClasses);
 
     container.className = classList.join(' ');
     cluster[0].parentNode.insertBefore(container, cluster[0]);
@@ -86,7 +107,7 @@
     if (gap) container.style.setProperty('--gap-override', gap);
     if (gapMobile) container.style.setProperty('--gap-mobile-override', gapMobile);
 
-    applyDesktopWidths(container, cluster, gridSize);
+    applyDesktopWidths(container, cluster, getDesktopGridSize(gridSize, responsiveClasses));
   }
 
   function applyDesktopWidths(container, cluster, gridSize) {

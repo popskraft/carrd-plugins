@@ -3,7 +3,7 @@
 ## Version
 
 - Version: `0.1.21`
-- Build date (UTC): `2026-05-15`
+- Build date (UTC): `2026-06-15`
 
 ## Installation
 
@@ -80,7 +80,7 @@ No coding required. Use the `grid-N` classes and the plugin does the rest.
 
 1. Add the **Container** elements that should form a grid row.
 2. Place them one after another — no unrelated blocks between them.
-3. Open each container's class panel and add one of: `grid-2`, `grid-3`, `grid-4`, `grid-5`, or `grid-6`.
+3. Open each container's class panel and add one base class: `grid-2`, `grid-3`, `grid-4`, `grid-5`, or `grid-6`.
 
 All consecutive containers with the same `grid-N` class form one grid. All gap and width controls live on the **first container** in the cluster.
 
@@ -131,9 +131,19 @@ Add to **any container** in the cluster:
 
 | Class | What it does |
 |-------|-------------|
-| `grid-sm-2` | Forces 2-column layout on mobile |
+| `grid-sm-1` ... `grid-sm-6` | Sets mobile columns at `<=736px` |
+| `grid-md-1` ... `grid-md-6` | Sets tablet / small desktop columns at `737px-1024px` |
+| `grid-lg-1` ... `grid-lg-6` | Sets large desktop columns at `>=1280px` |
 | `justify` | Stretches the cluster edge-to-edge |
 | `w-50`, `w-33`, etc. | Sets custom desktop column widths |
+
+Example:
+
+```txt
+grid-sm-2 grid-md-3 grid-4 grid-lg-5
+```
+
+This gives 2 columns on mobile, 3 on tablet / small desktop, 4 on desktop, and 5 on large desktop.
 
 ---
 
@@ -143,11 +153,11 @@ Add to the **first container** in a cluster to control the gap for that cluster 
 
 | Attribute | What it does |
 |-----------|-------------|
-| `data-gap=VALUE` | Column gap for all breakpoints. Plain number = rem, or any CSS value |
-| `data-gap-mobile=VALUE` | Gap on mobile only (≤736px). Falls back to `data-gap` if not set |
+| `data-gap=VALUE` | Row and column gap for all breakpoints. Plain number = rem, or any CSS value |
+| `data-gap-mobile=VALUE` | Row and column gap on mobile only (≤736px). Falls back to `data-gap` if not set |
 
 Examples:
-- `data-gap=1.5` → `1.5rem` gap on all breakpoints
+- `data-gap=1.5` → `1.5rem` row and column gap on all breakpoints
 - `data-gap=2 data-gap-mobile=0.75` → `2rem` desktop, `0.75rem` mobile
 - `data-gap=0` → no gap
 
