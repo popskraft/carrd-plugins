@@ -6,7 +6,7 @@ window.CarrdPluginOptions.shoppingCart = {
     currencyPosition: 'before',
     position: 'top-right',
     storageKey: 'carrd_cart_v1',
-    orderInputSelector: '[name="order-details"], .cart-output, [data-cart-output="order-details"]',
+    orderInputSelector: '[name="order-details"], .cart-output, [data-shopping-cart-output="order-details"], [data-cart-output="order-details"]',
     orderInputClass: '.cart-output',
     orderInputId: 'order-details',
     checkoutTargetSelector: '.shopping-cart-target, [data-shopping-cart-target]',
@@ -22,24 +22,20 @@ window.CarrdPluginOptions.shoppingCart = {
         errorName: 'Invalid product name',
         errorPrice: 'Invalid price for ${name}',
         errorForm: 'Error: Could not find the order form. Please contact support.',
-        consoleErrorForm: 'Carrd Cart: Could not find "Order Details" field. Please ensure a textarea matching orderInputSelector, .cart-output, #order-details, or [data-cart-output="order-details"] exists.'
+        consoleErrorForm: 'Carrd Cart: Could not find "Order Details" field. Please ensure a textarea matching orderInputSelector, .cart-output, #order-details, [data-shopping-cart-output="order-details"], or [data-cart-output="order-details"] exists.'
     }
 };
 
 /* FAQ */
-window.CarrdPluginOptions.faq = {
-    containerSelector: '.FAQContainer',
-    dividerSelector: 'hr.divider-component',
-    headerTags: ['H1', 'H2', 'H3'],
-    allowMultipleOpen: false,
-    defaultOpen: false
-};
+window.CarrdPluginOptions.faq = {};
 
 /* Accordeon */
 window.CarrdPluginOptions.accordeon = {
     enabled: true,
-    linkPrefix: '#accordeon-',
-    linkSelector: 'a[href^="#accordeon-"]',
+    hashPrefix: '#data-accordeon-',
+    legacyHashPrefix: '#accordeon-',
+    linkPrefix: '#data-accordeon-',
+    linkSelector: null,
     targetAttributes: ['data-accordeon', 'data-accorderon'],
     defaultOpen: false,
     scrollOnOpen: true,
@@ -50,13 +46,14 @@ window.CarrdPluginOptions.accordeon = {
 /* Cards */
 window.CarrdPluginOptions.cards = {
     enabled: true,
-    cardSelector: '.cards',
+    cardSelector: '[data-cards], .cards',
     defaultCardBg: 'var(--theme-card-bg-default)'
 };
 
 /* Grid Cluster */
 window.CarrdPluginOptions.gridCluster = {
     enabled: true,
+    gridAttribute: 'data-grid',
     gridClasses: ['grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6'],
     widthClasses: {
         'w-20': '20%',
@@ -84,7 +81,8 @@ window.CarrdPluginOptions.noLoadwaiting = {
 
 /* Slider */
 window.CarrdPluginOptions.slider = {
-    slideSelector: '.slider',
+    slideSelector: '[data-slider], .slider',
+    sliderAttribute: 'data-slider',
     showDots: true,
     showArrows: true,
     loop: false,
@@ -104,7 +102,12 @@ window.CarrdPluginOptions.slider = {
 
 /* Modal */
 window.CarrdPluginOptions.modal = {
-    modalSelector: '.container-component.modal',
+    modalSelector: '.container-component.modal, .container-component[data-modal]',
+    targetAttribute: 'data-modal',
+    triggerAttribute: 'data-modal-open',
+    legacyTriggerAttribute: 'data-modal-target',
+    hashPrefix: '#data-modal-',
+    legacyHashTargets: true,
     closeOnOverlay: true,
     closeOnEscape: true,
     showCloseButton: true,
@@ -120,14 +123,9 @@ window.CarrdPluginOptions.typography = {
 
 /* Cookie Banner */
 window.CarrdPluginOptions.cookieBanner = {
-    bannerSelector: '.theme-cookie-banner, .cookie-banner',
-    bannerId: 'cookie-baner',
     cookieName: 'cookies_accepted',
-    cookieDays: 7,
     fadeOutDuration: 300,
-    fadeInDuration: 400,
-    showDelay: 1000,
-    position: 'bottom-left'
+    fadeInDuration: 400
 };
 
 /* Header Nav */
@@ -142,6 +140,7 @@ window.CarrdPluginOptions.headerNav = {
 
 /* Floating CTA */
 window.CarrdPluginOptions.floatingCta = {
-    sourceId: 'site-header-cta',
+    selector: '[data-floating]',
+    defaultPosition: 'bottom-right',
     scrollY: 800
 };

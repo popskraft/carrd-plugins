@@ -6,7 +6,12 @@
   // ==========================================
   
   const DEFAULTS = {
-    modalSelector: '.container-component.modal',
+    modalSelector: '.container-component.modal, .container-component[data-modal]',
+    targetAttribute: 'data-modal',
+    triggerAttribute: 'data-modal-open',
+    legacyTriggerAttribute: 'data-modal-target',
+    hashPrefix: '#data-modal-',
+    legacyHashTargets: true,
     closeOnOverlay: true,
     closeOnEscape: true,
     showCloseButton: true,
@@ -45,6 +50,46 @@
   let triggersBound = false;
   let keyboardBound = false;
   let hashBound = false;
+  const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+
+  function cssEscape(value) {
+    if (window.CSS && typeof window.CSS.escape === 'function') {
+      return window.CSS.escape(value);
+    }
+    return value.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+  }
+
+  function normalizeName(value) {
+    return (value || '')
+      .trim()
+      .replace(/&quot;/g, '"')
+      .replace(/^["']+|["']+$/g, '');
+  }
+
+  function isSafeName(value) {
+    return safeNamePattern.test(value);
+  }
+
+  function normalizeModalRef(value) {
+    let name = normalizeName(value).replace(/^#/, '');
+    const hashPrefix = CONFIG.hashPrefix.replace(/^#/, '');
+    if (hashPrefix && name.startsWith(hashPrefix)) {
+      name = name.slice(hashPrefix.length);
+    }
+    return normalizeName(name);
+  }
+
+  function getModalKey(modal) {
+    const dataName = normalizeName(modal.getAttribute(CONFIG.targetAttribute));
+    if (dataName && isSafeName(dataName)) return dataName;
+    return normalizeModalRef(modal.id);
+  }
+
+  function getTriggerAttributes() {
+    return [CONFIG.triggerAttribute, CONFIG.legacyTriggerAttribute]
+      .filter(Boolean)
+      .filter((attribute, index, list) => list.indexOf(attribute) === index);
+  }
 
   // ==========================================
   // MODAL API
@@ -59,7 +104,8 @@
       if (CONFIG.preventWhenCartOpen && document.querySelector(cartOpenSelector)) {
         return;
       }
-      const id = modalId.replace(/^#/, '');
+      const id = normalizeModalRef(modalId);
+      if (!id) return;
       const modal = getOrInitModal(id);
       
       if (!modal) {
@@ -192,7 +238,7 @@
      * @param {string} modalId - The ID of the modal to toggle
      */
     toggle: function(modalId) {
-      const id = modalId.replace(/^#/, '');
+      const id = normalizeModalRef(modalId);
       if (activeModal === id) {
         this.close();
       } else {
@@ -207,7 +253,7 @@
      */
     isOpen: function(modalId) {
       if (modalId) {
-        return activeModal === modalId.replace(/^#/, '');
+        return activeModal === normalizeModalRef(modalId);
       }
       return activeModal !== null;
     }
@@ -253,9 +299,9 @@
    * @param {HTMLElement} modal - The modal element
    */
   function setupModal(modal) {
-    const modalId = modal.id;
+    const modalId = getModalKey(modal);
     if (!modalId) {
-      console.warn('Modal: Modal element must have an ID', modal);
+      console.warn('Modal: Modal element must have an ID or data-modal name', modal);
       return null;
     }
     
@@ -327,29 +373,45 @@
     triggersBound = true;
     // Use event delegation for better performance (capture to beat Carrd's handlers)
     const handler = (e) => {
-      const trigger = e.target.closest('a[href^="#"], button[data-modal]');
+      const triggerSelectors = getTriggerAttributes()
+        .flatMap(attribute => [`[${attribute}]`, `button[${attribute}]`, `a[${attribute}]`])
+        .join(', ');
+      const trigger = e.target.closest(
+        `a[href^="#"]${triggerSelectors ? `, ${triggerSelectors}` : ''}, button[${CONFIG.targetAttribute}], a[${CONFIG.targetAttribute}]`
+      );
       if (!trigger) return;
       
       let modalId = null;
-      
-      // Check for href="#modalId"
+
+      getTriggerAttributes().some(attribute => {
+        if (!trigger.hasAttribute(attribute)) return false;
+        modalId = normalizeModalRef(trigger.getAttribute(attribute));
+        return !!modalId;
+      });
+
+      if (!modalId && (
+        trigger.matches(`button[${CONFIG.targetAttribute}]`) ||
+        trigger.matches(`a[${CONFIG.targetAttribute}]`)
+      )) {
+        modalId = normalizeModalRef(trigger.getAttribute(CONFIG.targetAttribute));
+      }
+
+      // Check for href="#data-modal-name" first, then legacy href="#modalId".
       if (trigger.hasAttribute('href')) {
         const href = trigger.getAttribute('href');
         if (href && href.startsWith('#') && href.length > 1) {
-          const targetId = href.substring(1);
-          // Check if this ID corresponds to a modal
-          if (getOrInitModal(targetId)) {
-            modalId = targetId;
+          if (CONFIG.hashPrefix && href.startsWith(CONFIG.hashPrefix)) {
+            modalId = normalizeModalRef(href);
+          } else if (!modalId && CONFIG.legacyHashTargets === true) {
+            const targetId = href.substring(1);
+            if (getOrInitModal(targetId)) {
+              modalId = targetId;
+            }
           }
         }
       }
-      
-      // Check for data-modal attribute
-      if (!modalId && trigger.hasAttribute('data-modal')) {
-        modalId = trigger.getAttribute('data-modal').replace(/^#/, '');
-      }
-      
-      if (modalId) {
+
+      if (modalId && getOrInitModal(modalId)) {
         e.preventDefault();
         ModalAPI.open(modalId);
       }
@@ -366,7 +428,7 @@
     const openFromHash = () => {
       const hash = window.location.hash || '';
       if (hash.length <= 1) return;
-      const id = hash.substring(1);
+      const id = normalizeModalRef(hash);
       if (getOrInitModal(id)) {
         ModalAPI.open(id);
       }
@@ -419,10 +481,23 @@
    * @returns {HTMLElement|null}
    */
   function getOrInitModal(modalId) {
-    if (modalWrappers.has(modalId)) {
-      return modalWrappers.get(modalId);
+    const id = normalizeModalRef(modalId);
+    if (!id) return null;
+
+    if (modalWrappers.has(id)) {
+      return modalWrappers.get(id);
     }
-    const modal = document.getElementById(modalId);
+
+    if (isSafeName(id)) {
+      const dataModal = document.querySelector(
+        `[${CONFIG.targetAttribute}="${cssEscape(id)}"]`
+      );
+      if (dataModal && dataModal.matches && dataModal.matches(CONFIG.modalSelector)) {
+        return setupModal(dataModal);
+      }
+    }
+
+    const modal = CONFIG.legacyHashTargets === true ? document.getElementById(id) : null;
     if (modal && modal.matches && modal.matches(CONFIG.modalSelector)) {
       return setupModal(modal);
     }

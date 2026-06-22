@@ -2,19 +2,21 @@
   'use strict';
 
   const DEFAULTS = {
-    slideSelector: '.slider',
+    slideSelector: '[data-slider], .slider',
+    sliderAttribute: 'data-slider',
     showDots: true,
     showArrows: true,
     loop: false,
     autoplay: false,
     autoplayInterval: 5000,
+    snapThreshold: 0.3,
     gap: 16,
     hideOverflow: false,
     slidesPerView: 1,
     peek: 0.1,
     maxSlideWidth: 400,
     equalHeight: true,
-    freeScroll: true,
+    freeScroll: false,
     wheelScroll: false,
     breakpoints: {
       737: { slidesPerView: 4 },
@@ -31,6 +33,8 @@
     slide: 'theme-slider-slide', dots: 'theme-slider-dots', dot: 'theme-slider-dot',
     nav: 'theme-slider-nav', prev: 'theme-slider-nav--prev', next: 'theme-slider-nav--next'
   };
+  const INTERACTIVE_SELECTOR = 'button, a, input, textarea, select, [role="button"]';
+  const FORM_FIELD_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
 
   const ICONS = {
     prev: `<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
@@ -39,6 +43,26 @@
 
   const SLIDER_INSTANCES = [];
   const SNAP_EASE = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+  const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+
+  function normalizeName(value) {
+    return (value || '')
+      .trim()
+      .replace(/&quot;/g, '"')
+      .replace(/^["']+|["']+$/g, '');
+  }
+
+  function getSliderName(slide) {
+    const name = normalizeName(slide.getAttribute(BASE_CONFIG.sliderAttribute));
+    return safeNamePattern.test(name) ? name : '';
+  }
+
+  function isSameSliderCluster(slide, baseName) {
+    if (!slide || !slide.matches || !slide.matches(BASE_CONFIG.slideSelector)) return false;
+    const slideName = getSliderName(slide);
+    if (baseName || slideName) return slideName === baseName;
+    return true;
+  }
 
   class Slider {
     constructor(slides, config) {
@@ -47,14 +71,13 @@
       this.currentIndex = 0;
       this.isDragging = false;
       this.startX = 0;
+      this.startY = 0;
       this.translateX = 0;
       this.dragStartTranslate = 0;
       this.draggedTranslate = 0;
       this.autoplayTimer = null;
       this.slidesPerView = config.slidesPerView;
       this.currentGap = config.gap;
-      this.currentPeek = config.peek;
-      this.currentMaxSlideWidth = config.maxSlideWidth;
       this.eventHandlers = [];
       this.dotHandlers = [];
       this.resizeTimeout = null;
@@ -62,6 +85,11 @@
       this.lastDragTime = 0;
       this.lastDragX = 0;
       this.animationId = null;
+      this.dragAxis = null;
+      this.snapEndHandler = null;
+      this.snapFallbackTimer = null;
+      this.suppressClick = false;
+      this.suppressClickTimer = null;
       this.init();
     }
 
@@ -131,6 +159,15 @@
       }
 
       this.addListener(t, 'dragstart', e => e.preventDefault());
+      this.addListener(t, 'click', e => {
+        if (!this.suppressClick) return;
+        this.suppressClick = false;
+        clearTimeout(this.suppressClickTimer);
+        this.suppressClickTimer = null;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      }, { capture: true });
       t.setAttribute('tabindex', '0');
       this.addListener(t, 'keydown', e => {
         if (e.key === 'ArrowLeft') this.goToSlide(this.currentIndex - 1);
@@ -164,6 +201,7 @@
       this.eventHandlers.forEach(({ target, event, handler, options }) => target.removeEventListener(event, handler, options));
       this.eventHandlers = [];
       clearTimeout(this.resizeTimeout);
+      clearTimeout(this.suppressClickTimer);
       this.slides.forEach(slide => {
         slide.removeAttribute('data-slider-initialized');
         this.wrapper.parentNode.insertBefore(slide, this.wrapper);
@@ -190,8 +228,6 @@
       if (peek) spv += peek;
       this.slidesPerView = Math.min(spv, this.slides.length);
       this.currentGap = gap;
-      this.currentPeek = peek;
-      this.currentMaxSlideWidth = msw;
 
       // Update slide widths
       const totalGaps = Math.ceil(this.slidesPerView) - 1;
@@ -217,7 +253,11 @@
       this.dotsContainer.innerHTML = '';
 
       const pages = this.getTotalPages();
-      if (pages <= 1) { this.dotsContainer.style.display = 'none'; return; }
+      if (pages <= 1) {
+        this.dots = [];
+        this.dotsContainer.style.display = 'none';
+        return;
+      }
       this.dotsContainer.style.display = 'flex';
 
       for (let i = 0; i < pages; i++) {
@@ -250,21 +290,43 @@
       return t ? t.clientX : e.clientX;
     }
 
+    getPositionY(e) {
+      const t = e.touches?.[0] || e.changedTouches?.[0];
+      return t ? t.clientY : e.clientY;
+    }
+
     // --- Drag handling ---
 
     onDragStart(e) {
       if (this.slides.length <= 1) return;
+      const isTouch = Boolean(e.touches || e.changedTouches);
+      if (isTouch && e.target?.closest?.(FORM_FIELD_SELECTOR)) return;
+      if (!isTouch && e.target?.closest?.(INTERACTIVE_SELECTOR)) return;
+      const renderedTranslate = this.getRenderedTranslate();
       this.cancelMomentum();
+      this.translateX = this.normalizeTranslate(renderedTranslate);
+      this.track.style.transform = `translateX(${this.translateX}px)`;
       this.isDragging = true;
       this.wrapper.classList.add('is-dragging');
       const x = this.getPositionX(e);
       this.startX = x;
+      this.startY = this.getPositionY(e);
       this.dragStartTranslate = this.translateX;
       this.draggedTranslate = this.translateX;
+      this.dragAxis = null;
       this.velocity = 0;
       this.lastDragX = x;
       this.lastDragTime = Date.now();
       this.stopAutoplay();
+    }
+
+    suppressNextClick() {
+      this.suppressClick = true;
+      clearTimeout(this.suppressClickTimer);
+      this.suppressClickTimer = setTimeout(() => {
+        this.suppressClick = false;
+        this.suppressClickTimer = null;
+      }, 500);
     }
 
     onDragMove(e) {
@@ -272,6 +334,13 @@
       const now = Date.now();
       const x = this.getPositionX(e);
       const diff = x - this.startX;
+      const diffY = this.getPositionY(e) - this.startY;
+
+      if (!this.dragAxis && (Math.abs(diff) > 6 || Math.abs(diffY) > 6)) {
+        this.dragAxis = Math.abs(diff) > Math.abs(diffY) ? 'horizontal' : 'vertical';
+      }
+      if (this.dragAxis === 'vertical') return;
+
       const dt = now - this.lastDragTime;
       if (dt > 0) { this.velocity = (x - this.lastDragX) / dt; this.lastDragX = x; this.lastDragTime = now; }
 
@@ -282,16 +351,56 @@
 
       this.draggedTranslate = t;
       this.track.style.transform = `translateX(${t}px)`;
-      if (e.cancelable && Math.abs(diff) > 10) e.preventDefault();
+      if (e.cancelable && this.dragAxis === 'horizontal') e.preventDefault();
     }
 
     onDragEnd() {
       if (!this.isDragging) return;
       this.isDragging = false;
       this.wrapper.classList.remove('is-dragging');
+
+      if (!this.dragAxis) {
+        if (this.config.autoplay) this.startAutoplay();
+        return;
+      }
+
+      if (this.dragAxis === 'vertical') {
+        this.dragAxis = null;
+        if (this.config.autoplay) this.startAutoplay();
+        return;
+      }
+
+      if (Math.abs(this.draggedTranslate - this.dragStartTranslate) > 6) {
+        this.suppressNextClick();
+      }
       this.translateX = this.normalizeTranslate(this.draggedTranslate);
       this.track.style.transform = `translateX(${this.translateX}px)`;
-      this.startMomentum({ snap: !this.config.freeScroll });
+      this.dragAxis = null;
+
+      if (!this.config.freeScroll) {
+        this.snapAfterDrag();
+        return;
+      }
+
+      this.startMomentum({ snap: false });
+    }
+
+    snapAfterDrag() {
+      const slideWidth = this.getSlideWidth();
+      if (slideWidth <= 0) return;
+
+      const distance = this.translateX - this.dragStartTranslate;
+      const threshold = slideWidth * this.config.snapThreshold;
+      let targetIndex = this.currentIndex;
+
+      if (Math.abs(distance) >= threshold) {
+        targetIndex += distance < 0 ? 1 : -1;
+      } else {
+        targetIndex = Math.round(Math.abs(this.translateX) / slideWidth);
+      }
+
+      this.animateTo(targetIndex);
+      if (this.config.autoplay) this.startAutoplay();
     }
 
     onWheel(e) {
@@ -373,6 +482,38 @@
       if (this.config.autoplay) this.startAutoplay();
     }
 
+    getRenderedTranslate() {
+      const transform = window.getComputedStyle(this.track).transform || this.track.style.transform;
+      if (!transform || transform === 'none') return this.translateX;
+
+      const matrix3d = transform.match(/^matrix3d\((.+)\)$/);
+      if (matrix3d) {
+        const values = matrix3d[1].split(',').map(Number);
+        return Number.isFinite(values[12]) ? values[12] : this.translateX;
+      }
+
+      const matrix = transform.match(/^matrix\((.+)\)$/);
+      if (matrix) {
+        const values = matrix[1].split(',').map(Number);
+        return Number.isFinite(values[4]) ? values[4] : this.translateX;
+      }
+
+      const translate = transform.match(/translateX\((-?[\d.]+)px\)/);
+      return translate ? Number(translate[1]) : this.translateX;
+    }
+
+    clearSnapTransition() {
+      if (this.snapEndHandler) {
+        this.track.removeEventListener('transitionend', this.snapEndHandler);
+        this.snapEndHandler = null;
+      }
+      if (this.snapFallbackTimer) {
+        clearTimeout(this.snapFallbackTimer);
+        this.snapFallbackTimer = null;
+      }
+      this.track.style.transition = '';
+    }
+
     // Animate track to a given slide index with transition
     animateTo(index) {
       this.cancelMomentum();
@@ -384,8 +525,9 @@
       this.translateX = -this.getSlideWidth() * index;
       this.track.style.transition = SNAP_EASE;
       this.track.style.transform = `translateX(${this.translateX}px)`;
-      const onEnd = () => { this.track.style.transition = ''; this.track.removeEventListener('transitionend', onEnd); };
-      this.track.addEventListener('transitionend', onEnd);
+      this.snapEndHandler = () => this.clearSnapTransition();
+      this.track.addEventListener('transitionend', this.snapEndHandler);
+      this.snapFallbackTimer = setTimeout(() => this.clearSnapTransition(), 450);
       this.updateDotsAndArrows();
     }
 
@@ -393,7 +535,7 @@
 
     cancelMomentum() {
       if (this.animationId) { cancelAnimationFrame(this.animationId); this.animationId = null; }
-      this.track.style.transition = '';
+      this.clearSnapTransition();
     }
 
     // Instant position (resize/init)
@@ -430,10 +572,11 @@
 
     all.forEach(slide => {
       if (processed.has(slide) || slide.dataset.sliderInitialized === 'true') return;
+      const baseName = getSliderName(slide);
       const cluster = [slide];
       processed.add(slide);
       let sib = slide.nextElementSibling;
-      while (sib && sib.matches && sib.matches(BASE_CONFIG.slideSelector) && !processed.has(sib)) {
+      while (isSameSliderCluster(sib, baseName) && !processed.has(sib)) {
         cluster.push(sib);
         processed.add(sib);
         sib = sib.nextElementSibling;
@@ -446,10 +589,10 @@
 
   function init() {
     findSliderClusters().forEach(cluster => {
-      const id = cluster[0].dataset.sliderId || '';
+      const id = getSliderName(cluster[0]) || cluster[0].dataset.sliderId || '';
       const opts = (id && INSTANCE_CONFIGS[id]) || {};
       const cfg = { ...BASE_CONFIG, ...opts, breakpoints: { ...BASE_CONFIG.breakpoints, ...(opts.breakpoints || {}) } };
-      SLIDER_INSTANCES.push({ instance: new Slider(cluster, cfg), slides: cluster, instanceId: id });
+      SLIDER_INSTANCES.push({ instance: new Slider(cluster, cfg), instanceId: id });
     });
   }
 

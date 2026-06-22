@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -45,10 +45,10 @@ Use this when installing only selected plugins without the CDN bundle.
 
 **Step 2 — Install this plugin**
 
-1. Open `slider-embed.html` from this folder.
-2. Copy the full contents.
-3. In Carrd add `Embed → Code → Hidden → Body End` and paste.
-4. Publish the page and refresh.
+1. Open `slider-embed-part1.html` and `slider-embed-part2.html` from this folder.
+2. In Carrd, add two **Code → Hidden → Body End** embeds.
+3. Paste part 1 into the first embed and part 2 into the second embed.
+4. Keep the embeds in that order, publish the page, and refresh.
 
 ## How To Change Styles
 
@@ -72,28 +72,39 @@ Place that style block below `theme-design-system.html`.
 
 Turns consecutive Carrd containers into a responsive touch slider. Supports arrows, dots, autoplay, and per-slider settings.
 
-No coding required. Add one class to each container that should become a slide.
+No coding required. Add one `data-slider` name to each container that should become a slide.
 
 ---
 
-## Setup
+## What You Do in Carrd
 
 1. Add 2 or more **Container** elements that should become slides.
 2. Place them one after another — no unrelated blocks between them.
-3. Open each container, go to **Style → Classes**, and add the class `slider`.
+3. Open each container's attributes panel and add `data-slider=gallery`.
 
 That is enough for the default slider to work.
 
+Use a different name for each independent slider, for example `data-slider=reviews` or `data-slider=cases`.
+
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- Consecutive containers with the same `data-slider` value become one slider instance.
+- The instance name is also the key used for per-slider overrides in `window.CarrdPluginOptions.slider.instances`.
+- Drag, swipe, arrows, dots, autoplay, and breakpoints are all driven from that shared slider name.
+- Legacy `.slider` detection remains in runtime only as a compatibility bridge.
+
+---
+
+## How To Check That It Works
 
 1. Publish or refresh the page.
 2. On mobile, swipe the slider left or right.
 3. On desktop, drag the slider with the mouse.
 4. If arrows and dots are enabled, check that they appear and can be clicked.
 
-If nothing moves, the most common reason is that one of the intended slides is missing the `slider` class or the containers are not consecutive.
+If nothing moves, the most common reason is that one of the intended slides is missing the matching `data-slider` value or the containers are not consecutive.
 
 ---
 
@@ -125,7 +136,8 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 |--------|---------|-----------------|
 | `showDots` | `true` | Shows dot navigation |
 | `showArrows` | `true` | Shows previous/next arrows |
-| `slideSelector` | `.slider` | Selector used to collect consecutive slide containers |
+| `slideSelector` | `[data-slider], .slider` | Selector used to collect consecutive slide containers |
+| `sliderAttribute` | `data-slider` | Attribute used to group v2 slider instances |
 | `slidesPerView` | `1` | Base number of visible slides |
 | `gap` | `16` | Space between slides in px |
 | `peek` | `0.1` | Shows part of the next slide |
@@ -134,19 +146,20 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 | `loop` | `false` | Returns to the first slide after the last |
 | `autoplay` | `false` | Auto-advances slides |
 | `autoplayInterval` | `5000` | Delay between autoplay moves in ms |
+| `snapThreshold` | `0.3` | Drag distance as a fraction of one slide before snapping forward/back |
 | `hideOverflow` | `false` | Clips content outside the slider area |
-| `freeScroll` | `true` | Keeps the dragged position instead of snapping |
+| `freeScroll` | `false` | Keeps inertial free scrolling instead of snapping to the nearest slide |
 | `wheelScroll` | `false` | Lets horizontal trackpad gestures move the slider |
 | `breakpoints` | `{}` | Changes settings at larger screen widths |
-| `instances` | `{}` | Per-slider overrides using `data-slider-id` |
+| `instances` | `{}` | Per-slider overrides using `data-slider` names |
 
 ---
 
 ## Advanced: Per-Slider Settings
 
-If one slider needs different behavior, add a custom attribute to the **first container** in that slider cluster:
+If one slider needs different behavior, use the `data-slider` name as the instance key:
 
-`data-slider-id=reviews`
+`data-slider=reviews`
 
 Then configure it in `instances`:
 
@@ -170,14 +183,20 @@ window.CarrdPluginOptions = {
 
 ### Breakpoints
 
-Use breakpoints when the same slider should show more slides on larger screens:
+Use a full config block when the same slider should show more slides on larger screens:
 
-```javascript
-breakpoints: {
-    737: { slidesPerView: 2 },
-    1024: { slidesPerView: 3 },
-    1280: { slidesPerView: 4, peek: 0 }
-}
+```html
+<script>
+window.CarrdPluginOptions = {
+    slider: {
+        breakpoints: {
+            737: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+            1280: { slidesPerView: 4, peek: 0 }
+        }
+    }
+};
+</script>
 ```
 
 Breakpoint keys are minimum screen widths in px. `peek: 0` gives a clean grid-like layout on larger screens.
@@ -220,7 +239,7 @@ Add a **Code** embed with a `<style>` tag to restyle arrows and dots:
 
 ## Troubleshooting
 
-- Slider does not start: containers are not consecutive, or the `slider` class is missing on one.
+- Slider does not start: containers are not consecutive, or the `data-slider` value is missing on one.
 - Config does not apply: `window.CarrdPluginOptions` was placed after the plugin embed.
-- Instance settings do not work: `data-slider-id` is missing or added to the wrong container.
+- Instance settings do not work: `data-slider` is missing or its value does not match `instances`.
 - Slide content is cut off: try `hideOverflow: false`.

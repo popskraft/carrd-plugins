@@ -1,23 +1,18 @@
 (function() {
   'use strict';
 
-  // ==========================================
-  // CONFIGURATION
-  // ==========================================
-  
   const DEFAULTS = {
-    containerSelector: '.FAQContainer',
     dividerSelector: 'hr.divider-component',
-    headerTags: ['H1', 'H2', 'H3'],
     allowMultipleOpen: false,
-    defaultOpen: false  // Open first question by default
+    defaultOpen: false,
+    headerTags: ['H1', 'H2', 'H3']
   };
+  const CONTAINER_SELECTOR = '[data-faq], .FAQContainer';
+  const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
-  // Merge with external options
-  const externalOptions = (typeof window !== 'undefined' && 
-    window.CarrdPluginOptions && 
+  const externalOptions = (typeof window !== 'undefined' &&
+    window.CarrdPluginOptions &&
     window.CarrdPluginOptions.faq) || {};
-    
   const CONFIG = { ...DEFAULTS, ...externalOptions };
   const HEADER_TAGS = new Set(CONFIG.headerTags);
   const CLASSES = {
@@ -28,10 +23,6 @@
     closed: 'is-closed'
   };
 
-  // ==========================================
-  // PLUGIN LOGIC
-  // ==========================================
-  
   let answerIdCounter = 0;
   const openAnswersByContainer = new Map();
   let answerResizeObserver = null;
@@ -63,7 +54,7 @@
   };
 
   function init() {
-    const containers = document.querySelectorAll(CONFIG.containerSelector);
+    const containers = Array.from(document.querySelectorAll(CONTAINER_SELECTOR)).filter(isFaqContainer);
     if (!containers.length) return;
 
     if (!answerResizeObserver && typeof ResizeObserver !== 'undefined') {
@@ -78,14 +69,14 @@
       });
     }
 
-    let firstQuestion = true;
-
     containers.forEach(container => {
       if (container.dataset.faqInitialized === 'true') return;
       container.dataset.faqInitialized = 'true';
+      const containerConfig = getContainerConfig(container);
+      let firstQuestion = containerConfig.defaultOpen;
 
       const dividers = Array.from(container.querySelectorAll(CONFIG.dividerSelector)).filter(
-        divider => divider.closest(CONFIG.containerSelector) === container
+        divider => divider.closest(CONTAINER_SELECTOR) === container
       );
       if (!dividers.length) return;
 
@@ -106,7 +97,7 @@
           return;
         }
 
-        const shouldOpenByDefault = CONFIG.defaultOpen && firstQuestion;
+        const shouldOpenByDefault = firstQuestion;
         prepareToggle(header, answerWrapper, shouldOpenByDefault);
         firstQuestion = false;
       });
@@ -185,7 +176,7 @@
   }
 
   function prepareToggle(header, answer, openByDefault = false) {
-    const container = header.closest(CONFIG.containerSelector);
+    const container = header.closest(CONTAINER_SELECTOR);
     const openAnswers = getOpenAnswers(container);
 
     header.classList.add(CLASSES.question);
@@ -203,7 +194,6 @@
       answerResizeObserver.observe(answer);
     }
 
-    // Set initial state
     if (openByDefault) {
       header.classList.add(CLASSES.open);
       header.classList.remove(CLASSES.closed);
@@ -214,7 +204,6 @@
       trigger.setAttribute('aria-expanded', 'true');
       answer.setAttribute('aria-hidden', 'false');
       openAnswers.add(answer);
-      // Delay height calculation to ensure DOM is ready
       requestFrame(() => adjustHeight(answer));
     } else {
       header.classList.add(CLASSES.closed);
@@ -233,12 +222,12 @@
   }
 
   function toggleAnswer(header, answer) {
-    const container = header.closest(CONFIG.containerSelector);
+    const container = header.closest(CONTAINER_SELECTOR);
+    const containerConfig = getContainerConfig(container);
     const openAnswers = getOpenAnswers(container);
     const willOpen = !header.classList.contains(CLASSES.open);
-    
-    // Close others if not allowMultipleOpen
-    if (willOpen && !CONFIG.allowMultipleOpen) {
+
+    if (willOpen && !containerConfig.allowMultipleOpen) {
       Array.from(openAnswers).forEach(openAnswer => {
         if (openAnswer !== answer) {
           const openTrigger = document.querySelector(`.${CLASSES.trigger}[aria-controls="${openAnswer.id}"]`);
@@ -312,6 +301,45 @@
 
   function isDivider(node) {
     return !!(node && node.nodeType === 1 && node.matches && node.matches(CONFIG.dividerSelector));
+  }
+
+  function parseBooleanAttr(value) {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') {
+      return true;
+    }
+    if (normalized === 'false') {
+      return false;
+    }
+
+    return null;
+  }
+
+  function getContainerConfig(container) {
+    return {
+      allowMultipleOpen:
+        parseBooleanAttr(container.getAttribute('data-faq-allow-multiple')) ??
+        CONFIG.allowMultipleOpen === true,
+      defaultOpen:
+        parseBooleanAttr(container.getAttribute('data-faq-default-open')) ??
+        CONFIG.defaultOpen === true
+    };
+  }
+
+  function isFaqContainer(container) {
+    if (!container || container.nodeType !== 1) {
+      return false;
+    }
+    if (!container.hasAttribute('data-faq')) {
+      return container.classList.contains('FAQContainer');
+    }
+
+    const name = (container.getAttribute('data-faq') || '').trim();
+    return safeNamePattern.test(name);
   }
 
   if (document.readyState === 'loading') {

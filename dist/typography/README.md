@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -74,7 +74,7 @@ Turns a `.txt` container into cleaner text with Markdown-like parsing. Use headi
 
 ---
 
-## Setup
+## What You Do in Carrd
 
 1. Add a **Text** element or **Container** to your page.
 2. Open its class panel and add the class `txt`.
@@ -96,7 +96,15 @@ An HTML `<table>` inside `.txt` gets typography table styles automatically.
 
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- The plugin scans each `.txt` container and replaces plain-text syntax with styled headings, lists, and rules.
+- The original Carrd text flow stays intact; only the rendered structure is enhanced.
+- Tables inside `.txt` receive shared typography table styles automatically.
+
+---
+
+## How To Check That It Works
 
 1. Publish or refresh the page.
 2. Confirm headings and lists render with the intended styles.

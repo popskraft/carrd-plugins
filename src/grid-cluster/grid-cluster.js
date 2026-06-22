@@ -3,6 +3,7 @@
 
   const DEFAULTS = {
     enabled: true,
+    gridAttribute: 'data-grid',
     gridClasses: ['grid-2', 'grid-3', 'grid-4', 'grid-5', 'grid-6'],
     widthClasses: {
       'w-20': '20%',
@@ -31,31 +32,82 @@
   };
 
   const GRID_CLASSES = CONFIG.gridClasses;
+  const GRID_ATTRIBUTE = CONFIG.gridAttribute || 'data-grid';
   const WIDTH_CLASS_MAP = { ...DEFAULTS.widthClasses, ...(externalOptions.widthClasses || {}) };
-  const GRID_SELECTOR = GRID_CLASSES.map(cls => `.${cls}`).join(',');
+  const GRID_SELECTOR = [`[${GRID_ATTRIBUTE}]`, ...GRID_CLASSES.map(cls => `.${cls}`)].join(',');
   const WIDTH_CLASSES = Object.keys(WIDTH_CLASS_MAP);
   const RESPONSIVE_GRID_CLASS_PATTERN = /^grid-(sm|md|lg)-([1-6])$/;
+  const RESPONSIVE_GRID_ATTRIBUTES = {
+    sm: 'data-grid-sm',
+    md: 'data-grid-md',
+    lg: 'data-grid-lg'
+  };
   const requestFrame = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
   let pendingFrame = null;
+  const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
   const parseGap = val => {
     if (!val) return null;
     return !isNaN(val) ? val + 'rem' : val;
   };
 
-  const isGridBlock = element =>
-    element && GRID_CLASSES.some(cls => element.classList && element.classList.contains(cls));
+  const parseGridCount = value => {
+    const numeric = parseInt(value, 10);
+    return Number.isInteger(numeric) && numeric >= 1 && numeric <= 6 ? numeric : null;
+  };
 
-  const getGridSize = element => {
+  const normalizeName = value => (value || '')
+    .trim()
+    .replace(/&quot;/g, '"')
+    .replace(/^["']+|["']+$/g, '');
+
+  const getFirstAttribute = (element, attributes) => {
+    if (!element || !element.getAttribute) return null;
+    for (const attribute of attributes) {
+      const value = element.getAttribute(attribute);
+      if (value !== null && value !== '') {
+        return value;
+      }
+    }
+    return null;
+  };
+
+  const getGridName = element => {
+    const name = normalizeName(
+      element && element.getAttribute ? element.getAttribute(GRID_ATTRIBUTE) : ''
+    );
+    return safeNamePattern.test(name) ? name : '';
+  };
+
+  const isGridBlock = element =>
+    element && (
+      (element.hasAttribute && element.hasAttribute(GRID_ATTRIBUTE)) ||
+      GRID_CLASSES.some(cls => element.classList && element.classList.contains(cls))
+    );
+
+  const getGridSize = (element, fallbackLength = null) => {
     if (!element || !element.classList) return null;
+    const dataColumns = parseGridCount(element.getAttribute('data-grid-columns'));
+    if (dataColumns) return dataColumns;
+
     const sizeClass = GRID_CLASSES.find(cls => element.classList.contains(cls));
-    if (!sizeClass) return null;
-    const numeric = parseInt(sizeClass.split('-')[1], 10);
-    return Number.isNaN(numeric) ? null : numeric;
+    if (sizeClass) {
+      const numeric = parseInt(sizeClass.split('-')[1], 10);
+      return Number.isNaN(numeric) ? null : numeric;
+    }
+
+    if (getGridName(element)) {
+      return Math.min(6, Math.max(1, fallbackLength || 1));
+    }
+
+    return null;
   };
 
   const widthValueForElement = element => {
     if (!element || !element.classList) return null;
+    const dataWidth = element.getAttribute('data-grid-width');
+    if (dataWidth) return dataWidth;
+
     const widthClass = WIDTH_CLASSES.find(cls => element.classList.contains(cls));
     return widthClass ? WIDTH_CLASS_MAP[widthClass] : null;
   };
@@ -64,6 +116,10 @@
     const responsiveClasses = new Set();
     cluster.forEach(element => {
       if (!element || !element.classList) return;
+      Object.entries(RESPONSIVE_GRID_ATTRIBUTES).forEach(([breakpoint, attribute]) => {
+        const count = parseGridCount(element.getAttribute(attribute));
+        if (count) responsiveClasses.add(`grid-${breakpoint}-${count}`);
+      });
       element.classList.forEach(className => {
         if (RESPONSIVE_GRID_CLASS_PATTERN.test(className)) {
           responsiveClasses.add(className);
@@ -84,7 +140,10 @@
   function wrapCluster(cluster, gridSize) {
     if (!cluster.length || !cluster[0].parentNode) return;
 
-    if (cluster[0].classList.contains('justify')) {
+    if (
+      cluster[0].classList.contains('justify') ||
+      cluster[0].getAttribute('data-grid-justify') === 'true'
+    ) {
       cluster.forEach(node => node.classList.add(SELECTORS.justify));
     }
 
@@ -102,8 +161,8 @@
     cluster[0].parentNode.insertBefore(container, cluster[0]);
     cluster.forEach(node => container.appendChild(node));
 
-    const gap = parseGap(cluster[0].dataset.gap);
-    const gapMobile = parseGap(cluster[0].dataset.gapMobile);
+    const gap = parseGap(getFirstAttribute(cluster[0], ['data-grid-gap', 'data-gap']));
+    const gapMobile = parseGap(getFirstAttribute(cluster[0], ['data-grid-gap-mobile', 'data-gap-mobile']));
     if (gap) container.style.setProperty('--gap-override', gap);
     if (gapMobile) container.style.setProperty('--gap-mobile-override', gapMobile);
 
@@ -153,12 +212,15 @@
       if (block.classList.contains(SELECTORS.gridContainer)) return;
 
       const cluster = [block];
+      const baseName = getGridName(block);
       const baseSize = getGridSize(block);
       let sibling = block.nextElementSibling;
 
       while (isGridBlock(sibling)) {
-        const siblingSize = getGridSize(sibling);
-        if (baseSize !== null && siblingSize !== baseSize) {
+        const siblingName = getGridName(sibling);
+        if (baseName || siblingName) {
+          if (siblingName !== baseName) break;
+        } else if (baseSize !== null && getGridSize(sibling) !== baseSize) {
           break;
         }
         cluster.push(sibling);
@@ -168,7 +230,7 @@
 
       collected.add(block);
       cluster.forEach(node => node.dataset.gridInitialized = 'true');
-      wrapCluster(cluster, baseSize);
+      wrapCluster(cluster, getGridSize(block, cluster.length));
     });
 
     constrainImageFrames();

@@ -1,46 +1,45 @@
 (function() {
   'use strict';
 
-  // ==========================================
-  // CONFIGURATION
-  // ==========================================
+  const DATA_SELECTOR = '[data-cookie]';
+  const LEGACY_SELECTOR = '.theme-cookie-banner, .cookie-banner';
+  const LEGACY_ID = 'cookie-baner';
+  const POSITIONS = new Set([
+    'bottom-left',
+    'bottom-center',
+    'bottom-right',
+    'top-left',
+    'top-center',
+    'top-right'
+  ]);
 
   const DEFAULTS = {
-    bannerSelector: '.theme-cookie-banner, .cookie-banner',
-    bannerId: 'cookie-baner',       // Banner element ID
-    cookieName: 'cookies_accepted', // Cookie name for storing consent
-    cookieDays: 7,                  // Cookie lifetime in days
-    fadeOutDuration: 300,           // Fade-out animation duration (ms)
-    fadeInDuration: 400,            // Fade-in animation duration (ms)
-    showDelay: 1000,                // Delay before showing banner (ms) - allows page to fully load
-    position: 'bottom-left'         // Position: bottom-left, bottom-right, bottom-center, top-left, top-right, top-center
+    cookieName: 'cookies_accepted',
+    cookieDays: 7,
+    fadeOutDuration: 300,
+    fadeInDuration: 400,
+    showDelay: 1000,
+    position: 'bottom-left',
+    breakpoint: 736,
+    indent: '1',
+    indentMobile: '1-0.5'
   };
 
-  // Merge with external options via standard window.CarrdPluginOptions
   const externalOptions =
     (typeof window !== 'undefined' &&
       window.CarrdPluginOptions &&
       window.CarrdPluginOptions.cookieBanner) ||
     {};
 
-  const CONFIG = {};
-  for (const key in DEFAULTS) {
-    if (Object.prototype.hasOwnProperty.call(DEFAULTS, key)) {
-      CONFIG[key] = Object.prototype.hasOwnProperty.call(externalOptions, key)
-        ? externalOptions[key]
-        : DEFAULTS[key];
-    }
-  }
+  const CONFIG = {
+    ...DEFAULTS,
+    ...externalOptions
+  };
 
-  // ==========================================
-  // HELPER FUNCTIONS (Cookie utilities)
-  // ==========================================
+  let trackedBanners = [];
+  let listenersBound = false;
+  const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
-  /**
-   * Get cookie value by name
-   * @param {string} name - Cookie name
-   * @returns {string|null} - Value or null
-   */
   function getCookie(name) {
     if (typeof name !== 'string' || name.length === 0) return null;
 
@@ -56,7 +55,7 @@
       const rawValue = separatorIndex >= 0 ? trimmed.slice(separatorIndex + 1) : '';
       try {
         return decodeURIComponent(rawValue);
-      } catch (e) {
+      } catch (_error) {
         return rawValue;
       }
     }
@@ -64,12 +63,6 @@
     return null;
   }
 
-  /**
-   * Set a cookie
-   * @param {string} name - Cookie name
-   * @param {string} value - Cookie value
-   * @param {number} days - Lifetime in days
-   */
   function setCookie(name, value, days) {
     let expires = '';
     if (days) {
@@ -77,76 +70,127 @@
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
       expires = '; expires=' + date.toUTCString();
     }
+
     document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/; SameSite=Lax';
   }
 
-  // ==========================================
-  // POSITIONING (Styles for different positions)
-  // ==========================================
+  function isMobile() {
+    return window.innerWidth <= CONFIG.breakpoint;
+  }
 
-  /**
-   * Get positioning styles
-   * @param {string} position - Banner position
-   * @returns {Object} - CSS properties object
-   */
-  function getPositionStyles(position) {
+  function parseInteger(value, { min = 0 } = {}) {
+    if (typeof value === 'number' && Number.isInteger(value) && value >= min) {
+      return value;
+    }
+
+    if (typeof value !== 'string') return null;
+
+    const trimmed = value.trim();
+    if (!/^\d+$/.test(trimmed)) return null;
+
+    const parsed = Number.parseInt(trimmed, 10);
+    return parsed >= min ? parsed : null;
+  }
+
+  function normalizePosition(value) {
+    const requested = typeof value === 'string' ? value.trim() : '';
+    const fallback = POSITIONS.has(CONFIG.position) ? CONFIG.position : DEFAULTS.position;
+    return POSITIONS.has(requested) ? requested : fallback;
+  }
+
+  function parseIndent(value) {
+    if (typeof value !== 'string') return null;
+
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const parts = trimmed.split('-').map(part => part.trim());
+    const validParts = parts.every(part => /^\d*\.?\d+$/.test(part));
+    if (!validParts || parts.length < 1 || parts.length > 2) return null;
+
+    if (parts.length === 1) {
+      const rem = parts[0] + 'rem';
+      return { block: rem, inline: rem };
+    }
+
+    return {
+      block: parts[0] + 'rem',
+      inline: parts[1] + 'rem'
+    };
+  }
+
+  function normalizeName(value) {
+    return (value || '')
+      .trim()
+      .replace(/&quot;/g, '"')
+      .replace(/^["']+|["']+$/g, '');
+  }
+
+  function isNamedBanner(banner) {
+    if (!banner || !banner.hasAttribute || !banner.hasAttribute('data-cookie')) return false;
+    return safeNamePattern.test(normalizeName(banner.getAttribute('data-cookie')));
+  }
+
+  function resolveIndent(banner) {
+    const desktopIndent =
+      parseIndent(banner.getAttribute('data-cookie-indent')) ||
+      parseIndent(CONFIG.indent) ||
+      parseIndent(DEFAULTS.indent);
+
+    const mobileIndent =
+      parseIndent(banner.getAttribute('data-cookie-indent-mobile')) ||
+      parseIndent(CONFIG.indentMobile) ||
+      desktopIndent;
+
+    return isMobile() ? mobileIndent : desktopIndent;
+  }
+
+  function getPositionStyles(position, indent) {
     const base = {
       position: 'fixed',
       zIndex: '9999',
       margin: '0',
-      maxWidth: 'calc(100vw - 2rem)'
+      maxWidth: 'calc(100vw - ' + indent.inline + ' - ' + indent.inline + ')',
+      left: 'auto',
+      right: 'auto',
+      top: 'auto',
+      bottom: 'auto',
+      transform: 'none'
     };
 
     switch (position) {
       case 'bottom-right':
-        base.bottom = '1rem';
-        base.right = '1rem';
-        base.left = 'auto';
-        base.top = 'auto';
+        base.bottom = indent.block;
+        base.right = indent.inline;
         break;
       case 'bottom-center':
-        base.bottom = '1rem';
+        base.bottom = indent.block;
         base.left = '50%';
-        base.right = 'auto';
-        base.top = 'auto';
         base.transform = 'translateX(-50%)';
         break;
       case 'top-left':
-        base.top = '1rem';
-        base.left = '1rem';
-        base.bottom = 'auto';
-        base.right = 'auto';
+        base.top = indent.block;
+        base.left = indent.inline;
         break;
       case 'top-right':
-        base.top = '1rem';
-        base.right = '1rem';
-        base.bottom = 'auto';
-        base.left = 'auto';
+        base.top = indent.block;
+        base.right = indent.inline;
         break;
       case 'top-center':
-        base.top = '1rem';
+        base.top = indent.block;
         base.left = '50%';
-        base.right = 'auto';
-        base.bottom = 'auto';
         base.transform = 'translateX(-50%)';
         break;
       case 'bottom-left':
       default:
-        base.bottom = '1rem';
-        base.left = '1rem';
-        base.right = 'auto';
-        base.top = 'auto';
+        base.bottom = indent.block;
+        base.left = indent.inline;
         break;
     }
 
     return base;
   }
 
-  /**
-   * Apply styles object to element
-   * @param {HTMLElement} element - DOM element
-   * @param {Object} styles - CSS properties object
-   */
   function applyStyles(element, styles) {
     for (const prop in styles) {
       if (Object.prototype.hasOwnProperty.call(styles, prop)) {
@@ -155,92 +199,140 @@
     }
   }
 
-  // ==========================================
-  // MAIN PLUGIN LOGIC
-  // ==========================================
+  function getDisplayMode(banner) {
+    return banner.classList.contains('columns') ? 'flex' : 'block';
+  }
 
-  /**
-   * Accept cookies and hide banner
-   * @param {HTMLElement} banner - Banner element
-   */
-  function acceptCookies(banner) {
-    // Save consent to cookie
-    setCookie(CONFIG.cookieName, '1', CONFIG.cookieDays);
+  function findBanners() {
+    const banners = [];
+    const seen = new Set();
 
-    // Smooth fade-out effect
+    const addBanner = (banner) => {
+      if (!banner || seen.has(banner)) return;
+      seen.add(banner);
+      banners.push(banner);
+    };
+
+    document.querySelectorAll(DATA_SELECTOR).forEach(banner => {
+      if (isNamedBanner(banner)) {
+        addBanner(banner);
+      }
+    });
+    document.querySelectorAll(LEGACY_SELECTOR).forEach(addBanner);
+    addBanner(document.getElementById(LEGACY_ID));
+
+    return banners;
+  }
+
+  function resolvePosition(banner) {
+    return normalizePosition(banner.getAttribute('data-cookie-position') || CONFIG.position);
+  }
+
+  function resolveShowDelay(banner) {
+    return (
+      parseInteger(banner.getAttribute('data-cookie-delay'), { min: 0 }) ??
+      parseInteger(CONFIG.showDelay, { min: 0 }) ??
+      DEFAULTS.showDelay
+    );
+  }
+
+  function resolveCookieDays(banner) {
+    return (
+      parseInteger(banner.getAttribute('data-cookie-days'), { min: 1 }) ??
+      parseInteger(CONFIG.cookieDays, { min: 1 }) ??
+      DEFAULTS.cookieDays
+    );
+  }
+
+  function updateBannerLayout(banner) {
+    const position = resolvePosition(banner);
+    const indent = resolveIndent(banner);
+    applyStyles(banner, getPositionStyles(position, indent));
+  }
+
+  function hideBanner(banner, instant) {
+    if (!banner) return;
+
+    if (instant || CONFIG.fadeOutDuration <= 0) {
+      banner.style.opacity = '0';
+      banner.style.visibility = 'hidden';
+      banner.style.display = 'none';
+      return;
+    }
+
     banner.style.transition = 'opacity ' + CONFIG.fadeOutDuration + 'ms ease';
     banner.style.opacity = '0';
 
-    // After animation completes — fully hide
     setTimeout(function() {
+      banner.style.visibility = 'hidden';
       banner.style.display = 'none';
     }, CONFIG.fadeOutDuration);
   }
 
-  /**
-   * Initialize the banner
-   */
-  function init() {
-    const findBanner = () => {
-      const selector = typeof CONFIG.bannerSelector === 'string' ? CONFIG.bannerSelector.trim() : '';
-      const bySelector = selector ? document.querySelector(selector) : null;
-      if (bySelector) return bySelector;
-      return CONFIG.bannerId ? document.getElementById(CONFIG.bannerId) : null;
-    };
+  function acceptCookies(sourceBanner) {
+    setCookie(CONFIG.cookieName, '1', resolveCookieDays(sourceBanner));
+    trackedBanners.forEach(banner => hideBanner(banner, false));
+  }
 
-    // If cookie already set — hide banner and exit
-    if (getCookie(CONFIG.cookieName) === '1') {
-      const existingBanner = findBanner();
-      if (existingBanner) {
-        existingBanner.style.display = 'none';
-      }
+  function bindListeners() {
+    if (listenersBound) return;
+    listenersBound = true;
+
+    window.addEventListener('resize', function() {
+      trackedBanners.forEach(updateBannerLayout);
+    });
+  }
+
+  function initBanner(banner) {
+    if (banner.dataset.cookieBannerInitialized === 'true') {
+      updateBannerLayout(banner);
       return;
     }
 
-    // Find banner by selector first, ID second
-    const banner = findBanner();
-    if (!banner) {
-      // Banner not found — do nothing (maybe not needed on this page)
-      return;
-    }
-
-    if (banner.dataset.cookieBannerInitialized === 'true') return;
     banner.dataset.cookieBannerInitialized = 'true';
     banner.classList.add('theme-cookie-banner');
+    updateBannerLayout(banner);
 
-    // Apply positioning styles
-    const positionStyles = getPositionStyles(CONFIG.position);
-    applyStyles(banner, positionStyles);
-
-    // Find accept button (priority: role='button', then .icons-component a, then any a)
     const acceptBtn =
       banner.querySelector('a[role="button"]') ||
       banner.querySelector('[data-cookie-accept]') ||
       banner.querySelector('.icons-component a');
 
     if (acceptBtn) {
-      acceptBtn.addEventListener('click', function(e) {
-        e.preventDefault();
+      acceptBtn.addEventListener('click', function(event) {
+        event.preventDefault();
         acceptCookies(banner);
       });
     }
 
-    // Force explicit display mode so we override base CSS hide rule.
-    // Carrd "columns" containers are flex-based; other blocks can use block.
-    banner.style.display = banner.classList.contains('columns') ? 'flex' : 'block';
+    banner.style.display = getDisplayMode(banner);
     banner.style.visibility = 'visible';
     banner.style.opacity = '0';
     banner.style.transition = 'opacity ' + CONFIG.fadeInDuration + 'ms ease';
 
-    // Show banner after delay to ensure page is fully loaded and animation works
     setTimeout(function() {
+      if (getCookie(CONFIG.cookieName) === '1') return;
       banner.style.opacity = '1';
-    }, CONFIG.showDelay);
+    }, resolveShowDelay(banner));
   }
 
-  // ==========================================
-  // RUN (after DOM is loaded)
-  // ==========================================
+  function init() {
+    trackedBanners = findBanners();
+    if (!trackedBanners.length) return;
+
+    bindListeners();
+
+    if (getCookie(CONFIG.cookieName) === '1') {
+      trackedBanners.forEach(banner => hideBanner(banner, true));
+      return;
+    }
+
+    trackedBanners.forEach(initBanner);
+  }
+
+  window.CarrdCookieBanner = {
+    refresh: init
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

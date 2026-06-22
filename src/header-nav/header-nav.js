@@ -1,96 +1,38 @@
-(function() {
+(function () {
   'use strict';
+
+  /*
+   * Header Nav - anti-jump mobile collapse.
+   *
+   * Activation: any #header that contains at least one
+   * `.header-mobile-el-collapsing` element. No `site-header` /
+   * `header-collapsing` classes required. No sticky.
+   *
+   * On mobile (<= breakpoint) flagged elements collapse behind a
+   * hamburger and expand inline (they push the header down, not a dropdown
+   * panel). The collapsed layout is produced by CSS on first paint (see
+   * header-nav.css + the Head guard), so there is no load jump. JS only
+   * injects the hamburger and toggles open/close. No dimming overlay; the
+   * menu is in flow, so an overlay would only cover surrounding content.
+   */
 
   const CONFIG = {
     breakpoint: 736,
     closeOnLinkClick: true,
-    sticky: true,
-    stickyTop: 0,
-    navMaxHeight: '80vh',
     ...((window.CarrdPluginOptions && window.CarrdPluginOptions.headerNav) || {})
   };
 
-  const ROOT_SELECTOR = '.container-component.site-header';
-  const HEADER_SCOPE_SELECTOR = '#header';
+  const HEADER_SELECTOR = '#header';
   const COLLAPSING_SELECTOR = '.header-mobile-el-collapsing';
-  const NAV_SELECTORS = [
-    '.theme-header-nav-menu',
-    '.links-component'
-  ];
-
   const CLASSNAMES = {
-    root: 'theme-header-nav',
-    shell: 'theme-header-nav-shell',
-    stickyRoot: 'theme-header-nav-sticky',
-    initialized: 'is-header-nav-initialized',
-    mobile: 'is-mobile',
-    collapsible: 'is-collapsible',
-    stuck: 'is-stuck',
-    hidden: 'is-hidden',
     open: 'is-nav-open',
-    spacer: 'theme-header-nav-spacer',
-    section: 'theme-header-nav-section',
     primarySection: 'theme-header-nav-primary-section',
-    collapseSection: 'theme-header-nav-collapse-section',
     toggle: 'theme-header-nav-toggle',
-    toggleBar: 'theme-header-nav-toggle-bar',
-    menu: 'theme-header-nav-menu',
-    overlay: 'theme-header-nav-overlay'
-  };
-
-  const CSS_VARS = {
-    maxHeight: '--theme-header-nav-max-height',
-    stickyTop: '--theme-header-nav-sticky-top'
+    toggleBar: 'theme-header-nav-toggle-bar'
   };
 
   const INSTANCES = [];
   let globalsBound = false;
-  let menuIdCounter = 0;
-
-  function queryAll(root, selectors) {
-    for (let i = 0; i < selectors.length; i += 1) {
-      const matches = root.querySelectorAll(selectors[i]);
-      if (matches.length) return Array.from(matches);
-    }
-    return [];
-  }
-
-  function resolveHeaderScope(root) {
-    return (root && root.closest && root.closest(HEADER_SCOPE_SELECTOR)) || root;
-  }
-
-  function resolveNavElements(root) {
-    const headerScope = resolveHeaderScope(root);
-    const collapsingMatches = headerScope.querySelectorAll(COLLAPSING_SELECTOR);
-    if (collapsingMatches.length) return Array.from(collapsingMatches);
-    return queryAll(root, NAV_SELECTORS);
-  }
-
-  function resolveSectionWrap(root) {
-    return (
-      root.querySelector('.wrapper > .inner') ||
-      root.querySelector('.wrapper .inner') ||
-      root.querySelector('.inner') ||
-      root.querySelector('.wrapper') ||
-      root
-    );
-  }
-
-  function findTopSection(target, sectionWrap) {
-    if (!target || !sectionWrap) return null;
-    let current = target;
-    while (current && current.parentElement && current.parentElement !== sectionWrap) {
-      current = current.parentElement;
-    }
-    return current && current.parentElement === sectionWrap ? current : null;
-  }
-
-  function ensureMenuId(menu, preferredBase) {
-    if (menu.id) return menu.id;
-    menuIdCounter += 1;
-    menu.id = `${preferredBase || 'theme-header-nav-menu'}-${menuIdCounter}`;
-    return menu.id;
-  }
 
   function createToggle() {
     const button = document.createElement('button');
@@ -106,260 +48,102 @@
     return button;
   }
 
-  function ensureOverlay(root) {
-    let overlay = root.querySelector(`.${CLASSNAMES.overlay}`);
-    const wrapper = root.querySelector('.wrapper');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = CLASSNAMES.overlay;
-      overlay.setAttribute('aria-hidden', 'true');
-    }
-    if (wrapper) {
-      root.insertBefore(overlay, wrapper);
-    } else if (overlay.parentNode !== root) {
-      root.appendChild(overlay);
-    }
-    return overlay;
-  }
-
-  function ensureSpacer(root) {
-    let spacer = root.previousElementSibling;
-    if (spacer && spacer.classList && spacer.classList.contains(CLASSNAMES.spacer)) {
-      return spacer;
-    }
-    spacer = document.createElement('div');
-    spacer.className = CLASSNAMES.spacer;
-    root.parentNode.insertBefore(spacer, root);
-    return spacer;
-  }
-
-  function resolveStickyShell(root) {
-    return (root && root.closest && root.closest('header')) || root;
+  /* The logo row: first child row inside .inner, falling back gracefully. */
+  function resolvePrimarySection(header) {
+    const inner =
+      header.querySelector('.wrapper > .inner') ||
+      header.querySelector('.inner') ||
+      header.querySelector('.wrapper') ||
+      header;
+    return inner.firstElementChild || inner;
   }
 
   function bindGlobals() {
     if (globalsBound || !INSTANCES.length) return;
     globalsBound = true;
 
-    let _resizeTimer;
+    let resizeTimer;
     window.addEventListener('resize', () => {
-      clearTimeout(_resizeTimer);
-      _resizeTimer = setTimeout(() => {
-        INSTANCES.forEach(instance => instance.onResize());
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        INSTANCES.forEach(i => i.onResize());
       }, 60);
-    });
-
-    window.addEventListener('scroll', () => {
-      INSTANCES.forEach(instance => instance.onScroll());
     });
 
     document.addEventListener('keydown', event => {
       if (event.key !== 'Escape') return;
-      INSTANCES.forEach(instance => {
-        if (instance.isOpen()) instance.close(true);
-      });
+      INSTANCES.forEach(i => { if (i.isOpen()) i.close(true); });
     });
   }
 
-  function initializeRoot(root) {
-    if (!root || root.getAttribute('data-header-nav-bound') === 'true') return;
+  function initializeHeader(header) {
+    if (header.getAttribute('data-header-nav-bound') === 'true') return;
+    // Only activate if there is something to collapse.
+    if (!header.querySelector(COLLAPSING_SELECTOR)) return;
+    header.setAttribute('data-header-nav-bound', 'true');
 
-    const sectionWrap = resolveSectionWrap(root);
-    const primarySection = sectionWrap?.firstElementChild || root;
-    const overlaySelector = `.${CLASSNAMES.overlay}`;
-    const sections = sectionWrap && sectionWrap !== root
-      ? Array.from(sectionWrap.children)
-      : Array.from(root.children).filter(node => node !== root.querySelector(overlaySelector));
-    const navEls = resolveNavElements(root);
-    const hasNav = navEls.length > 0;
-    const stickyShell = resolveStickyShell(root);
-    const stickyEnabled = CONFIG.sticky !== false && root.classList.contains('header-fixed');
-    const collapsibleEnabled = root.classList.contains('header-collapsing');
+    const primarySection = resolvePrimarySection(header);
+    primarySection.classList.add(CLASSNAMES.primarySection);
 
-    root.setAttribute('data-header-nav-bound', 'true');
-    root.classList.add(CLASSNAMES.root, CLASSNAMES.initialized);
-    root.classList.toggle(CLASSNAMES.collapsible, collapsibleEnabled && hasNav);
-    root.classList.remove(CLASSNAMES.stickyRoot, CLASSNAMES.stuck, CLASSNAMES.hidden);
-    root.style.removeProperty('--theme-header-nav-fixed-left');
-    root.style.removeProperty('--theme-header-nav-fixed-width');
-    root.style.setProperty(CSS_VARS.maxHeight, CONFIG.navMaxHeight);
-
-    sections.forEach(section => {
-      section.classList.add(CLASSNAMES.section);
-      section.classList.remove(CLASSNAMES.primarySection, CLASSNAMES.collapseSection);
-    });
-    if (primarySection) primarySection.classList.add(CLASSNAMES.primarySection);
-
-    if (stickyShell) {
-      stickyShell.classList.add(CLASSNAMES.shell);
-      stickyShell.classList.toggle(CLASSNAMES.stickyRoot, stickyEnabled);
+    const toggle = header.querySelector('.' + CLASSNAMES.toggle) || createToggle();
+    if (toggle.parentNode !== primarySection) {
+      primarySection.appendChild(toggle);
     }
 
-    const collapseSections = [];
-    let toggle = root.querySelector(`.${CLASSNAMES.toggle}`);
-    let overlay = null;
+    const isMobile = () => window.innerWidth <= CONFIG.breakpoint;
 
-    if (hasNav && collapsibleEnabled) {
-      navEls.forEach(navEl => {
-        const section = findTopSection(navEl, sectionWrap) || navEl;
-        if (!collapseSections.includes(section)) collapseSections.push(section);
-        section.classList.add(CLASSNAMES.collapseSection);
-        section.setAttribute('aria-hidden', 'true');
-        navEl.classList.add(CLASSNAMES.menu);
-        navEl.setAttribute('aria-hidden', 'true');
-      });
-
-      toggle = toggle || createToggle();
-      toggle.setAttribute('aria-controls', ensureMenuId(navEls[0], `${root.id || 'theme-header'}-nav`));
-      if (toggle.parentNode !== primarySection) {
-        primarySection.appendChild(toggle);
-      }
-      overlay = ensureOverlay(root);
-    } else {
-      root.classList.remove(CLASSNAMES.collapsible, CLASSNAMES.open);
-      if (toggle) toggle.remove();
-      const existingOverlay = root.querySelector(overlaySelector);
-      if (existingOverlay) existingOverlay.remove();
-      navEls.forEach(navEl => {
-        const staticSection = findTopSection(navEl, sectionWrap) || navEl;
-        navEl.setAttribute('aria-hidden', 'false');
-        staticSection.setAttribute('aria-hidden', 'false');
-      });
-      toggle = null;
-    }
-
-    const legacySpacer =
-      stickyShell && stickyShell !== root &&
-      root.previousElementSibling &&
-      root.previousElementSibling.classList &&
-      root.previousElementSibling.classList.contains(CLASSNAMES.spacer)
-        ? root.previousElementSibling
-        : null;
-    if (legacySpacer) legacySpacer.remove();
-
-    const stickyTarget = stickyEnabled ? stickyShell || root : null;
-    const spacer = stickyTarget ? ensureSpacer(stickyTarget) : null;
-    const syncShellState = (className, enabled) => {
-      if (!stickyShell || stickyShell === root) return;
-      stickyShell.classList.toggle(className, enabled);
-    };
-    const syncStructuralState = (className, enabled) => {
-      root.classList.toggle(className, enabled);
-      syncShellState(className, enabled);
-    };
-    const toggleStickyState = (className, enabled) => {
-      root.classList.toggle(className, enabled);
-      syncShellState(className, enabled);
-    };
-
-    const syncMetrics = () => {
-      const stickyHeight = (stickyTarget || root).getBoundingClientRect().height;
-      if (spacer) spacer.style.height = stickyHeight > 0 ? `${stickyHeight}px` : '0px';
-    };
-
-    const setOpen = (isOpen, options = {}) => {
-      const { restoreFocus = false } = options;
-      if (!toggle || !collapseSections.length || !root.classList.contains(CLASSNAMES.collapsible)) return;
-      syncStructuralState(CLASSNAMES.open, isOpen);
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      navEls.forEach(navEl => {
-        navEl.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      });
-      collapseSections.forEach(section => {
-        section.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      });
-      if (overlay) {
-        overlay.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      }
-      if (isOpen) toggleStickyState(CLASSNAMES.hidden, false);
-      if (!isOpen && restoreFocus) toggle.focus();
-    };
-
-    const checkScrollPosition = () => {
-      if (!stickyTarget) return;
-      const isMobile = root.classList.contains(CLASSNAMES.mobile);
-      if (isMobile) {
-        toggleStickyState(CLASSNAMES.stuck, false);
-        if (spacer) spacer.style.height = '0px';
-      } else {
-        const rect = stickyTarget.getBoundingClientRect();
-        const isStuck = rect.top <= CONFIG.stickyTop;
-        toggleStickyState(CLASSNAMES.stuck, isStuck);
-        if (isStuck) syncMetrics();
-      }
-    };
-
-    const updateSticky = () => {
-      if (!stickyTarget) return;
-      const isMobile = root.classList.contains(CLASSNAMES.mobile);
-      if (isMobile) {
-        toggleStickyState(CLASSNAMES.stuck, false);
-        if (spacer) spacer.style.height = '0px';
-      } else {
-        checkScrollPosition();
-      }
-    };
-
-    const updateViewport = () => {
-      const isMobile = window.innerWidth <= CONFIG.breakpoint;
-      syncStructuralState(CLASSNAMES.mobile, isMobile);
-      const stickyTopTarget = stickyTarget || root;
-      if (stickyTopTarget !== root) {
-        root.style.removeProperty(CSS_VARS.stickyTop);
-      }
-      stickyTopTarget.style.setProperty(CSS_VARS.stickyTop, `${CONFIG.stickyTop}px`);
-      if (!isMobile) setOpen(false);
-      updateSticky();
-    };
-
-    if (toggle) {
-      toggle.addEventListener('click', () => {
-        if (!root.classList.contains(CLASSNAMES.mobile) || !root.classList.contains(CLASSNAMES.collapsible)) return;
-        setOpen(!root.classList.contains(CLASSNAMES.open));
-      });
-    }
-
-    if (overlay) {
-      overlay.addEventListener('click', () => setOpen(false, { restoreFocus: true }));
-    }
-
-    if (hasNav && CONFIG.closeOnLinkClick) {
-      navEls.forEach(navEl => {
-        navEl.addEventListener('click', event => {
-          const link = event.target.closest('a');
-          if (!link) return;
-          if (!root.classList.contains(CLASSNAMES.mobile) || !root.classList.contains(CLASSNAMES.collapsible)) return;
-          setOpen(false);
+    /* The hamburger is position:fixed, but the menu expands in flow inside
+     * #header. If the user opens the menu while scrolled away from the header,
+     * the expanded menu would be off-screen. Scroll the header into view on
+     * open so the menu is always visible. Honour reduced-motion. */
+    const revealHeader = () => {
+      const reduceMotion =
+        window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (header.getBoundingClientRect().top < 0) {
+        header.scrollIntoView({
+          behavior: reduceMotion ? 'auto' : 'smooth',
+          block: 'start'
         });
-      });
-    }
+      }
+    };
 
-    if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(() => {
-        syncMetrics();
-        updateSticky();
+    const setOpen = (open, options) => {
+      options = options || {};
+      header.classList.toggle(CLASSNAMES.open, open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open && isMobile()) revealHeader();
+      if (!open && options.restoreFocus) toggle.focus();
+    };
+
+    const onResize = () => {
+      if (!isMobile()) setOpen(false);
+    };
+
+    toggle.addEventListener('click', () => {
+      if (!isMobile()) return;
+      setOpen(!header.classList.contains(CLASSNAMES.open));
+    });
+
+    if (CONFIG.closeOnLinkClick) {
+      header.addEventListener('click', event => {
+        if (!isMobile()) return;
+        const link = event.target.closest('a');
+        if (link && header.contains(link)) setOpen(false);
       });
-      resizeObserver.observe(root);
     }
 
     INSTANCES.push({
-      onResize: updateViewport,
-      onScroll: checkScrollPosition,
-      isOpen: () => root.classList.contains(CLASSNAMES.open),
-      close: (restoreFocus = false) => setOpen(false, { restoreFocus })
+      onResize: onResize,
+      isOpen: () => header.classList.contains(CLASSNAMES.open),
+      close: restoreFocus => setOpen(false, { restoreFocus: restoreFocus })
     });
 
-    syncStructuralState(CLASSNAMES.initialized, true);
-    syncStructuralState(CLASSNAMES.collapsible, collapsibleEnabled && hasNav);
-    if (!collapsibleEnabled || !hasNav) {
-      syncStructuralState(CLASSNAMES.open, false);
-    }
-
-    updateViewport();
+    onResize();
   }
 
   function init() {
-    document.querySelectorAll(ROOT_SELECTOR).forEach(initializeRoot);
+    document.querySelectorAll(HEADER_SELECTOR).forEach(initializeHeader);
     bindGlobals();
   }
 

@@ -4,34 +4,7 @@ Turns a `.txt` container into cleaner text with Markdown-like parsing. Use headi
 
 ---
 
-## Installation
-
-### CDN Bundle (recommended)
-
-If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
-
-To install CDN embeds: see `dist/README.md` → CDN Bundle section.
-
-### Inline Embed (single plugin)
-
-Use this when installing only selected plugins without the CDN bundle.
-
-**Step 1 — Install theme header (once per site)**
-
-1. Open `theme-design-system.html` from the `dist/` folder.
-2. Copy the full contents.
-3. In Carrd: `Add Element → Embed → Code → Hidden → Head` and paste.
-
-**Step 2 — Install this plugin**
-
-1. Open `typography-embed.html` from this folder.
-2. Copy the full contents.
-3. In Carrd: `Add Element → Embed → Code → Hidden → Body End` and paste.
-4. Publish the page and refresh.
-
----
-
-## Setup
+## What You Do in Carrd
 
 1. Add a **Text** element or **Container** to your page.
 2. Open its class panel and add the class `txt`.
@@ -53,7 +26,15 @@ An HTML `<table>` inside `.txt` gets typography table styles automatically.
 
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- The plugin scans each `.txt` container and replaces plain-text syntax with styled headings, lists, and rules.
+- The original Carrd text flow stays intact; only the rendered structure is enhanced.
+- Tables inside `.txt` receive shared typography table styles automatically.
+
+---
+
+## How To Check That It Works
 
 1. Publish or refresh the page.
 2. Confirm headings and lists render with the intended styles.

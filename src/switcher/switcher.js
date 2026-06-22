@@ -7,6 +7,8 @@
     defaultIndex: 1,
     warnOnMismatch: true,
     scopeSelector: 'section',
+    targetAttribute: 'data-switcher-target',
+    targetIndexAttribute: 'data-switcher-index',
     modeAttribute: 'data-switcher-mode',
     clusterTargetAttribute: 'data-switcher-cluster',
     clusterScopeSelector: '.site-main'
@@ -130,6 +132,54 @@
       .filter(target => !hasClusterTargetAncestor(target, switcherName, scope, config));
   }
 
+  function isDataTarget(element, switcherName, config) {
+    return normalizeClusterName(element.getAttribute(config.targetAttribute)) === switcherName;
+  }
+
+  function hasDataTargetAncestor(element, switcherName, scope, config) {
+    let parent = element.parentElement;
+
+    while (parent && parent !== scope) {
+      if (isDataTarget(parent, switcherName, config)) return true;
+      parent = parent.parentElement;
+    }
+
+    return false;
+  }
+
+  function findDataTargets(scope, switcherName, config) {
+    return Array.from(scope.querySelectorAll(`[${config.targetAttribute}]`))
+      .filter(target => isDataTarget(target, switcherName, config))
+      .filter(target => !hasDataTargetAncestor(target, switcherName, scope, config));
+  }
+
+  function getTargetIndex(target, config) {
+    const numeric = parseInt(target.getAttribute(config.targetIndexAttribute), 10);
+    return Number.isInteger(numeric) && numeric >= 1 ? numeric : null;
+  }
+
+  function buildDataTargetGroups(scope, switcherName, buttons, controller, config) {
+    const dataTargets = findDataTargets(scope, switcherName, config)
+      .filter(target => target !== controller);
+
+    if (!dataTargets.length) return null;
+
+    const hasExplicitIndexes = dataTargets.some(target => getTargetIndex(target, config) !== null);
+    if (hasExplicitIndexes) {
+      return buttons.map((button, index) => ({
+        index: index + 1,
+        button,
+        targets: dataTargets.filter(target => getTargetIndex(target, config) === index + 1)
+      }));
+    }
+
+    return buttons.map((button, index) => ({
+      index: index + 1,
+      button,
+      targets: dataTargets[index] ? [dataTargets[index]] : []
+    }));
+  }
+
   function buildGroups(scope, switcherName, buttons, mode, controller, config) {
     if (mode === 'cluster') {
       const clusterTargets = findClusterTargets(scope, switcherName, config).filter(target => target !== controller);
@@ -147,6 +197,11 @@
         button,
         targets: clusterTargets[index] ? [clusterTargets[index]] : []
       }));
+    }
+
+    const dataTargetGroups = buildDataTargetGroups(scope, switcherName, buttons, controller, config);
+    if (dataTargetGroups) {
+      return dataTargetGroups;
     }
 
     // Try indexed classes first (.pricing-1, .pricing-2…) — backward compat

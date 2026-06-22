@@ -3,7 +3,7 @@
 
   const DEFAULTS = {
     enabled: true,
-    cardSelector: '.cards',
+    cardSelector: '[data-cards], .cards',
     defaultCardBg: 'var(--theme-card-bg-default)'
   };
 
@@ -34,6 +34,16 @@
 
   const hasNonZeroPadding = paddingValues =>
     paddingValues.some(value => parseFloat(value) !== 0);
+
+  function getFirstAttribute(container, attributes) {
+    for (const attribute of attributes) {
+      const value = container.getAttribute(attribute);
+      if (value !== null && value !== '') {
+        return value;
+      }
+    }
+    return null;
+  }
 
   function getPaddingTargets(container) {
     const inner = container.querySelector(':scope > .wrapper > .inner');
@@ -107,9 +117,14 @@
       container.style.setProperty('--theme-card-padding', inheritedPadding);
       container.style.removeProperty('--theme-card-padding-mobile');
     } else {
-      // Fall back to legacy data-padding attributes
-      const dataPadding = container.getAttribute('data-padding');
-      const dataPaddingMobile = container.getAttribute('data-padding-mobile');
+      const dataPadding = getFirstAttribute(container, [
+        'data-cards-padding',
+        'data-padding'
+      ]);
+      const dataPaddingMobile = getFirstAttribute(container, [
+        'data-cards-padding-mobile',
+        'data-padding-mobile'
+      ]);
 
       if (dataPadding) {
         const normalizedPadding = dataPadding
@@ -178,7 +193,10 @@
       const backgroundPosition = style.backgroundPosition;
       const backgroundRepeat = style.backgroundRepeat;
       const backgroundSize = style.backgroundSize;
-      const dataColor = container.dataset.color;
+      const dataColor = getFirstAttribute(container, [
+        'data-cards-color',
+        'data-color'
+      ]);
 
       syncCardPadding(container);
 
@@ -201,8 +219,14 @@
         const cardItem = document.createElement('div');
         cardItem.classList.add(SELECTORS.cardItem);
 
-        const specificColor = container.getAttribute(`data-color-${index + 1}`);
-        const specificBorderColor = container.getAttribute(`data-border-color-${index + 1}`);
+        const specificColor = getFirstAttribute(container, [
+          `data-cards-color-${index + 1}`,
+          `data-color-${index + 1}`
+        ]);
+        const specificBorderColor = getFirstAttribute(container, [
+          `data-cards-border-color-${index + 1}`,
+          `data-border-color-${index + 1}`
+        ]);
 
         if (specificColor) {
           cardItem.style.backgroundColor = specificColor;

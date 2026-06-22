@@ -3,8 +3,10 @@
 
   const DEFAULTS = {
     enabled: true,
-    linkPrefix: '#accordeon-',
-    linkSelector: 'a[href^="#accordeon-"]',
+    hashPrefix: '#data-accordeon-',
+    legacyHashPrefix: '#accordeon-',
+    linkPrefix: '#data-accordeon-',
+    linkSelector: null,
     targetAttributes: ['data-accordeon', 'data-accorderon'],
     defaultOpen: false,
     scrollOnOpen: true,
@@ -32,6 +34,16 @@
   const requestFrame = window.requestAnimationFrame || (cb => setTimeout(cb, 16));
   const groups = new Map();
   let listenerBound = false;
+  const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+
+  const HASH_PREFIXES = [
+    CONFIG.hashPrefix,
+    CONFIG.linkPrefix,
+    CONFIG.legacyHashPrefix
+  ].filter((prefix, index, list) => prefix && list.indexOf(prefix) === index);
+
+  const LINK_SELECTOR = CONFIG.linkSelector ||
+    HASH_PREFIXES.map(prefix => `a[href^="${prefix}"]`).join(',');
 
   function normalizeName(value) {
     return (value || '')
@@ -51,8 +63,10 @@
   function getLinkName(link) {
     if (!link || !link.getAttribute) return '';
     const href = (link.getAttribute('href') || '').trim();
-    if (!href.startsWith(CONFIG.linkPrefix)) return '';
-    return normalizeName(decodeName(href.slice(CONFIG.linkPrefix.length)));
+    const prefix = HASH_PREFIXES.find(candidate => href.startsWith(candidate));
+    if (!prefix) return '';
+    const name = normalizeName(decodeName(href.slice(prefix.length)));
+    return safeNamePattern.test(name) ? name : '';
   }
 
   function targetSelector() {
@@ -84,13 +98,13 @@
   }
 
   function findControls(name) {
-    return Array.from(document.querySelectorAll(CONFIG.linkSelector))
+    return Array.from(document.querySelectorAll(LINK_SELECTOR))
       .filter(link => getLinkName(link) === name);
   }
 
   function discoverNames() {
     const names = new Set();
-    document.querySelectorAll(CONFIG.linkSelector).forEach(link => {
+    document.querySelectorAll(LINK_SELECTOR).forEach(link => {
       const name = getLinkName(link);
       if (name && findTargets(name).length) {
         names.add(name);
@@ -173,7 +187,7 @@
 
   function closestLink(node) {
     if (!node || node.nodeType !== 1) return null;
-    return node.closest(CONFIG.linkSelector);
+    return node.closest(LINK_SELECTOR);
   }
 
   function handleClick(event) {

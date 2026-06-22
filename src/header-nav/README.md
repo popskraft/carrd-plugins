@@ -1,107 +1,53 @@
 # Header Nav
 
-Turns a Carrd header into a sticky desktop bar with an optional collapsing hamburger menu on mobile.
+Collapses selected Carrd header elements behind a mobile hamburger without a load-time layout jump.
 
----
+## What You Do in Carrd
 
-## Installation
-
-### CDN Bundle (recommended)
-
-If your site already has the CDN embeds installed (`theme-core.min.css` in Head and `theme-core.min.js` in Body End), this plugin is already active — no extra steps needed.
-
-To install CDN embeds: see `dist/README.md` → CDN Bundle section.
-
-### Inline Embed (single plugin)
-
-Use this when installing only selected plugins without the CDN bundle.
-
-**Step 1 — Install theme header (once per site)**
-
-1. Open `theme-design-system.html` from the `dist/` folder.
-2. Copy the full contents.
-3. In Carrd: `Add Element → Embed → Code → Hidden → Head` and paste.
-
-**Step 2 — Install this plugin**
-
-1. Open `header-nav-embed.html` from this folder.
-2. Copy the full contents.
-3. In Carrd: `Add Element → Embed → Code → Hidden → Body End` and paste.
+1. Build the header inside Carrd's `#header` section.
+2. Add class `header-mobile-el-collapsing` to every header element that should hide behind the hamburger on mobile.
+3. Leave elements without that class visible on mobile, for example the logo.
 4. Publish the page and refresh.
 
----
+No `site-header`, `header-collapsing`, or `header-fixed` class is required for this version.
 
-## Setup
+## How It Works in Carrd
 
-1. Build your header as a normal Carrd row with a logo, nav links, and an optional CTA.
-2. Open the main header container's class panel and add `site-header` — this enables the plugin.
-3. Add the behavior classes you want to the same container:
+- The plugin activates only when `#header` contains at least one `.header-mobile-el-collapsing` element.
+- On mobile (`<= 736px` by default), marked elements are hidden while `#header` does not have `is-nav-open`.
+- The hamburger button is injected into the first row inside `#header`.
+- Opening the menu toggles `is-nav-open` on `#header`; marked elements return to their original Carrd layout.
+- The menu expands in page flow. There is no overlay, sticky shell, spacer, or desktop sticky behavior.
+- If the header is above the viewport when the mobile menu opens, the plugin scrolls `#header` into view.
 
-| Goal | Classes to add |
-|------|---------------|
-| Regular header | `site-header` |
-| Sticky on desktop | `site-header header-fixed` |
-| Hamburger on mobile | `site-header header-collapsing` |
-| Sticky and hamburger | `site-header header-fixed header-collapsing` |
+## How To Check That It Works
 
-4. If using `header-collapsing`, add class `header-mobile-el-collapsing` to every element inside `#header` that should collapse into the hamburger menu. Elements without this class stay visible on mobile.
-
-If you use `header-fixed`, set the container width to **Edge to Edge** or **Full Bleed** in Carrd for the most predictable layout.
-
----
-
-## Class Reference
-
-| Class | Where | What it does |
-|-------|-------|-------------|
-| `site-header` | root container | Enables the plugin |
-| `header-fixed` | root container | Sticky on desktop |
-| `header-collapsing` | root container | Hamburger mode on mobile |
-| `header-mobile-el-collapsing` | any child element | Hides that element behind the hamburger |
-
----
-
-## How to Verify
-
-1. Publish the page.
-2. Resize below 736px — if `header-collapsing` is set, confirm the hamburger appears.
-3. Tap the hamburger — confirm all marked elements expand.
-4. Resize above 736px — if `header-fixed` is set, scroll and confirm the header stays at the top.
+1. Resize the page below 736px.
+2. Confirm the hamburger appears and the marked elements are hidden from the first paint.
+3. Tap the hamburger and confirm the marked elements expand without losing their Carrd styling.
+4. Tap a link in the opened menu and confirm the menu closes.
+5. Press `Escape` and confirm the menu closes and focus returns to the hamburger.
+6. Resize above 736px and confirm the menu is closed and the marked elements are no longer forced hidden by the plugin CSS.
 
 If the plugin seems inactive:
-- check that the root container has class `site-header`
-- check that collapsible elements have `header-mobile-el-collapsing`
-- check that the embed is placed in **Body End**
 
-If the menu flashes on load, add this small guard in **Head** above other plugin embeds:
-
-```html
-<style>
-@media (max-width: 736px) {
-  #header:has(.site-header.header-collapsing:not(.is-header-nav-initialized)) .header-mobile-el-collapsing {
-    display: none !important;
-  }
-}
-</style>
-```
-
-If the header sticks but the width looks wrong, set the container width to **Edge to Edge** or **Full Bleed**.
-
----
+- confirm the page has a `#header` section;
+- confirm at least one element inside `#header` has class `header-mobile-el-collapsing`;
+- confirm the plugin embed or CDN script is installed in `Body End`.
 
 ## Configuration
 
-Most sites can use the default behavior and skip configuration.
+Most sites can use the defaults.
 
-Add a **Code** embed and paste this block **above** the plugin embed if you want to change the breakpoint or nav height:
+Add a **Code** embed above the plugin embed if you need to change behavior:
 
 ```html
 <script>
 window.CarrdPluginOptions = {
-    headerNav: {
-        breakpoint: 736,
-        navMaxHeight: '80vh'
-    }
+  headerNav: {
+    breakpoint: 736,
+    closeOnLinkClick: true
+  }
 };
 </script>
 ```
@@ -111,45 +57,46 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 ### Options
 
 | Option | Default | What it changes |
-|--------|---------|-----------------|
+|---|---:|---|
 | `breakpoint` | `736` | Mobile cutoff for hamburger behavior |
-| `sticky` | `true` | Extra on/off switch for sticky when `header-fixed` is present |
-| `stickyTop` | `0` | Top offset for the fixed header in px |
 | `closeOnLinkClick` | `true` | Closes the mobile menu after tapping a link |
-| `navMaxHeight` | `80vh` | Maximum mobile menu height before it scrolls |
 
----
+Legacy sticky options such as `sticky`, `stickyTop`, and `navMaxHeight` no longer affect this plugin.
 
 ## Design
 
-Add a **Code** embed with a `<style>` tag and override any of these variables:
+Add a separate **Head** style embed below `theme-design-system.html` and override variables as needed:
 
 ```html
 <style>
 :root {
-    --theme-header-nav-toggle-size: 2.5rem;
-    --theme-header-nav-toggle-bg: transparent;
-    --theme-header-nav-bar-color: currentColor;
-    --theme-header-nav-bar-width: 22px;
-    --theme-header-nav-bar-height: 2px;
-    --theme-header-nav-bar-gap: 5px;
-    --theme-header-nav-duration: 300ms;
-    --theme-header-nav-max-height: 80vh;
-    --theme-header-nav-sticky-top: 0;
-    --theme-header-nav-sticky-z-index: 1000;
+  --theme-header-nav-toggle-position: fixed;
+  --theme-header-nav-toggle-top: 1rem;
+  --theme-header-nav-toggle-right: 1rem;
+  --theme-header-nav-toggle-size: 46px;
+  --theme-header-nav-toggle-z-index: 100000;
+  --theme-header-nav-toggle-bg: rgba(255, 255, 255, 0.2);
+  --theme-header-nav-toggle-backdrop: blur(10px);
+  --theme-header-nav-bar-color: currentColor;
+  --theme-header-nav-bar-width: 22px;
+  --theme-header-nav-bar-height: 2px;
+  --theme-header-nav-bar-gap: 5px;
+  --theme-header-nav-duration: 300ms;
 }
 </style>
 ```
 
 | Variable | Default | What it changes |
-|----------|---------|-----------------|
-| `--theme-header-nav-toggle-size` | `2.5rem` | Hamburger button size |
-| `--theme-header-nav-toggle-bg` | `transparent` | Hamburger button background |
+|---|---|---|
+| `--theme-header-nav-toggle-position` | `fixed` | Hamburger positioning mode |
+| `--theme-header-nav-toggle-top` | `1rem` | Hamburger top offset |
+| `--theme-header-nav-toggle-right` | `1rem` | Hamburger right offset |
+| `--theme-header-nav-toggle-size` | `46px` | Hamburger button size |
+| `--theme-header-nav-toggle-z-index` | `100000` | Hamburger stack order; kept above Floating CTA by default |
+| `--theme-header-nav-toggle-bg` | `rgba(255, 255, 255, 0.2)` | Hamburger button background |
+| `--theme-header-nav-toggle-backdrop` | `blur(10px)` | Hamburger backdrop filter |
 | `--theme-header-nav-bar-color` | `currentColor` | Hamburger bar color |
 | `--theme-header-nav-bar-width` | `22px` | Hamburger bar width |
 | `--theme-header-nav-bar-height` | `2px` | Hamburger bar thickness |
 | `--theme-header-nav-bar-gap` | `5px` | Space between hamburger bars |
-| `--theme-header-nav-duration` | `300ms` | Menu open/close animation speed |
-| `--theme-header-nav-max-height` | `80vh` | Maximum expanded menu height |
-| `--theme-header-nav-sticky-top` | `0` | Top offset when header is sticky |
-| `--theme-header-nav-sticky-z-index` | `1000` | Stack order for sticky header |
+| `--theme-header-nav-duration` | `300ms` | Hamburger animation speed |

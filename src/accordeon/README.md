@@ -6,16 +6,16 @@ Use it when one button should show or hide every container marked with the same 
 
 ---
 
-## Setup
+## What You Do in Carrd
 
 1. Add a Carrd **Buttons** element.
-2. Set the button link to `#accordeon-ppf`.
+2. Set the button link to `#data-accordeon-ppf`.
 3. Add `data-accordeon=ppf` to each container that should open and close together.
 4. Publish the page and refresh.
 
 Replace `ppf` with any short name you want to use for that group.
 
-The plugin only handles links that match `#accordeon-...` and have matching targets on the page. Other hash links keep their normal Carrd behavior.
+The plugin only handles links that match `#data-accordeon-...` and have matching targets on the page. Other hash links keep their normal Carrd behavior.
 
 ## How It Works in Carrd
 
@@ -25,7 +25,7 @@ Clicking a matching button:
 
 - opens all containers with the same `data-accordeon` value;
 - closes them again on the next click;
-- syncs any other buttons with the same `#accordeon-...` link.
+- syncs any other buttons with the same `#data-accordeon-...` link.
 - scrolls smoothly to the first opened container.
 
 ## How To Check That It Works
@@ -38,7 +38,7 @@ Clicking a matching button:
 If nothing happens, check that the link and target value match exactly:
 
 ```html
-<a href="#accordeon-ppf" role="button">Open details</a>
+<a href="#data-accordeon-ppf" role="button">Open details</a>
 <div data-accordeon="ppf">Details</div>
 ```
 
@@ -68,8 +68,9 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 | Option | Default | What it changes |
 |--------|---------|-----------------|
 | `enabled` | `true` | Turns the plugin on or off |
-| `linkPrefix` | `#accordeon-` | Link prefix that activates toggles |
-| `linkSelector` | `a[href^="#accordeon-"]` | Selector used to find toggle links |
+| `hashPrefix` | `#data-accordeon-` | v2 link prefix that activates toggles |
+| `legacyHashPrefix` | `#accordeon-` | Legacy link prefix kept during migration |
+| `linkSelector` | auto | Selector used to find toggle links |
 | `targetAttributes` | `['data-accordeon','data-accorderon']` | Target attributes checked for matching containers |
 | `defaultOpen` | `false` | Opens matching groups on page load |
 | `scrollOnOpen` | `true` | Scrolls to the first target after opening |

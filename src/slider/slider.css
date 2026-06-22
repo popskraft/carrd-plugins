@@ -18,6 +18,16 @@
   cursor: grabbing;
 }
 
+.theme-slider-wrapper a,
+.theme-slider-wrapper button,
+.theme-slider-wrapper img {
+  touch-action: pan-y;
+}
+
+.theme-slider-wrapper img {
+  -webkit-user-drag: none;
+}
+
 /* Slider Track */
 .theme-slider-track {
   display: flex;

@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -107,7 +107,7 @@ window.CarrdPluginOptions = {
 </script>
 ```
 
-## Options
+### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|

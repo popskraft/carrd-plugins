@@ -1,5 +1,5 @@
-
 /* Base styles */
+[data-cookie],
 .theme-cookie-banner,
 .cookie-banner,
 #cookie-baner {
@@ -8,21 +8,11 @@
   display: none;
   visibility: hidden;
   opacity: 0;
-}
-
-/* Mobile */
-@media screen and (max-width: 736px) {
-  .theme-cookie-banner,
-  .cookie-banner,
-  #cookie-baner {
-    left: 0.5rem !important;
-    right: 0.5rem !important;
-    max-width: calc(100vw - 1rem) !important;
-    transform: none !important;
-  }
+  box-sizing: border-box;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-cookie],
   .theme-cookie-banner,
   .cookie-banner,
   #cookie-baner {

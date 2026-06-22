@@ -15,7 +15,7 @@
     storageKey: 'carrd_cart_v1',
     
     // Checkout Form Settings
-    orderInputSelector: '[name="order-details"], .cart-output, [data-cart-output="order-details"]',
+    orderInputSelector: '[name="order-details"], .cart-output, [data-shopping-cart-output="order-details"], [data-cart-output="order-details"]',
     orderInputClass: '.cart-output',
     orderInputId: 'order-details',
     checkoutTargetSelector: '.shopping-cart-target, [data-shopping-cart-target]',
@@ -33,7 +33,7 @@
       errorName: 'Invalid product name',
       errorPrice: 'Invalid price for ${name}',
       errorForm: 'Error: Could not find the order form. Please contact support.',
-        consoleErrorForm: 'Carrd Cart: Could not find "Order Details" field. Please ensure a textarea matching orderInputSelector, .cart-output, #order-details, or [data-cart-output="order-details"] exists.'
+        consoleErrorForm: 'Carrd Cart: Could not find "Order Details" field. Please ensure a textarea matching orderInputSelector, .cart-output, #order-details, [data-shopping-cart-output="order-details"], or [data-cart-output="order-details"] exists.'
     }
   };
 
@@ -420,6 +420,7 @@
         checkoutForm.querySelector(CONFIG.orderInputSelector) ||
         checkoutForm.querySelector(CONFIG.orderInputClass) ||
         checkoutForm.querySelector('[name="order-details"]') ||
+        checkoutForm.querySelector('[data-shopping-cart-output="order-details"]') ||
         checkoutForm.querySelector('[data-cart-output="order-details"]') ||
         checkoutForm.querySelector('#order-details')
       )) ||
@@ -427,6 +428,7 @@
       document.querySelector(CONFIG.orderInputClass) ||
       (CONFIG.orderInputId ? document.getElementById(CONFIG.orderInputId) : null) ||
       document.querySelector('[name="order-details"]') ||
+      document.querySelector('[data-shopping-cart-output="order-details"]') ||
       document.querySelector('[data-cart-output="order-details"]') ||
       document.querySelector('#order-details')
     );

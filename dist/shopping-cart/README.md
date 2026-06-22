@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -45,10 +45,10 @@ Use this when installing only selected plugins without the CDN bundle.
 
 **Step 2 — Install this plugin**
 
-1. Open `shopping-cart-embed.html` from this folder.
-2. Copy the full contents.
-3. In Carrd add `Embed → Code → Hidden → Body End` and paste.
-4. Publish the page and refresh.
+1. Open `shopping-cart-embed-part1.html` and `shopping-cart-embed-part2.html` from this folder.
+2. In Carrd, add two **Code → Hidden → Body End** embeds.
+3. Paste part 1 into the first embed and part 2 into the second embed.
+4. Keep the embeds in that order, publish the page, and refresh.
 
 ## How To Change Styles
 
@@ -74,16 +74,26 @@ Adds a floating cart widget that collects product selections and writes the orde
 
 ---
 
-## Setup
+## What You Do in Carrd
 
 1. Add a **Section Break** named `shopping-cart` — this creates the Carrd anchor `#shopping-cart` for the checkout flow.
 2. Inside that section, add a **Form** element with ID `form-shopping-cart`.
 3. Inside the form, add a **Textarea** field. Keep its name as `order-details`.
-4. On each product button, add a click action: `CarrdShoppingCart.add('Product Name', 29.99)`.
+4. When you want an explicit plugin marker, also add `data-shopping-cart-output="order-details"` to that textarea.
+5. On each product button, add a click action: `CarrdShoppingCart.add('Product Name', 29.99)`.
 
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- Product buttons add items into the floating runtime cart.
+- Checkout writes the order summary into the textarea used by the Carrd form.
+- The preferred explicit output marker is `data-shopping-cart-output="order-details"`.
+- Legacy `data-cart-output`, `.cart-output`, and `#order-details` detection still works only for migration.
+
+---
+
+## How To Check That It Works
 
 1. Publish the page.
 2. Click a product button.
@@ -91,7 +101,7 @@ Adds a floating cart widget that collects product selections and writes the orde
 4. Open the cart and click Checkout.
 5. Confirm the order summary appears in the form textarea.
 
-If nothing appears in the form, check that the textarea name is `order-details` and the form ID is `form-shopping-cart`.
+If nothing appears in the form, check that the textarea name is `order-details`, the optional `data-shopping-cart-output="order-details"` marker is correct, and the form ID is `form-shopping-cart`.
 
 ---
 

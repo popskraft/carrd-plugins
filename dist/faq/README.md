@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -72,14 +72,14 @@ Place that style block below `theme-design-system.html`.
 
 Turns a Carrd container into an accordion. Visitors click a question to expand the answer.
 
-No coding required. Add one class and structure your content with standard Carrd elements.
+No coding required. Add one `data-*` marker and structure your content with standard Carrd elements.
 
 ---
 
-## Setup
+## What You Do in Carrd
 
 1. Add a **Container** element to hold all your FAQ questions.
-2. Open its class panel and add the class `FAQContainer`.
+2. Open its attribute panel and add `data-faq="main"`.
 3. Inside the container, build each question with this structure: **Divider** → **Heading** → answer content.
 4. Add a **Divider** before the first question too.
 5. Use H1, H2, or H3 for the question heading.
@@ -87,47 +87,40 @@ No coding required. Add one class and structure your content with standard Carrd
 
 If no heading is found between two dividers, the plugin falls back to the first paragraph in that block.
 
+Optional container attributes:
+
+- `data-faq-allow-multiple="true"` lets more than one answer stay open
+- `data-faq-default-open="true"` opens the first question on page load
+
+Legacy fallback: `.FAQContainer` still works for older installs, but new setups should use `data-faq`.
+
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- The plugin reads one `data-faq="..."` container at a time.
+- Every block between two dividers becomes one FAQ item.
+- The first heading inside that block becomes the clickable question label.
+- Answers are collapsed by default unless `data-faq-default-open="true"` is set.
+
+---
+
+## How To Check That It Works
 
 1. Publish or refresh the page.
 2. The questions should be visible with answers collapsed.
 3. Click a question — the answer should expand.
 4. Click again — it should collapse.
 
-If nothing opens, check that the class is exactly `FAQContainer` and that a **Divider** exists before the first question.
+If nothing opens, check that `data-faq` is present, the value is a simple name such as `main`, and a **Divider** exists before the first question.
 
 ---
 
 ## Configuration
 
-No configuration is needed for normal use.
+No global `window.CarrdPluginOptions` setup is required for normal FAQ usage.
 
-Add a **Code** embed and paste this block **above** the plugin embed if you want to change default behavior:
-
-```html
-<script>
-window.CarrdPluginOptions = {
-    faq: {
-        allowMultipleOpen: false,
-        defaultOpen: false
-    }
-};
-</script>
-```
-
-If you use multiple plugins, create one shared `window.CarrdPluginOptions` block and place it once above all plugin embeds.
-
-### Options
-
-| Option | Default | What it changes |
-|--------|---------|-----------------|
-| `containerSelector` | `.FAQContainer` | FAQ container selector |
-| `dividerSelector` | `hr.divider-component` | Divider that starts each question |
-| `headerTags` | `['H1','H2','H3']` | Heading tags treated as questions |
-| `allowMultipleOpen` | `false` | Lets more than one answer stay open |
-| `defaultOpen` | `false` | Opens the first question automatically |
+Use the container attributes from the setup section when you need per-FAQ behavior such as `data-faq-allow-multiple` or `data-faq-default-open`.
 
 ---
 

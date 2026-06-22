@@ -5,7 +5,7 @@ body {
 
 /* Header Nav pre-init mobile collapse */
 @media (max-width: 736px) {
-  #header:has(.site-header.header-collapsing:not(.is-header-nav-initialized)) .header-mobile-el-collapsing {
+  #header:not(.is-nav-open) .header-mobile-el-collapsing {
     display: none !important;
   }
 }

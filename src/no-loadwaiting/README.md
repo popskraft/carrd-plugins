@@ -37,7 +37,7 @@ window.CarrdPluginOptions = {
 </script>
 ```
 
-## Options
+### Options
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|

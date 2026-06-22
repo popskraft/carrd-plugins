@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -72,22 +72,68 @@ Place that style block below `theme-design-system.html`.
 
 Shows a fixed cookie consent banner and remembers the visitor's choice. The banner hides automatically once accepted.
 
-No coding required. Add one class to a container and style it like any other Carrd block.
+No coding required. Add one data attribute to a container and style it like any other Carrd block.
 
 ---
 
-## Setup
+## What You Do in Carrd
 
 1. Add a **Container** element for the banner.
-2. Open its class panel and add the class `cookie-banner`.
+2. Open its attributes panel and add `data-cookie="consent"` or another simple name.
 3. Add your cookie policy text inside the container.
 4. Add an accept link or button inside the container.
 5. To make the accept button reliable, open the link's settings and add a custom attribute `role=button` — or use a Carrd **Buttons** element.
 6. Style the container like any other Carrd block.
 
+### Optional data attributes
+
+Use these on the same container when you need custom viewport offsets:
+
+```html
+data-cookie-indent="1"
+data-cookie-indent="0-1"
+data-cookie-indent="1-0"
+```
+
+- `1` → `1rem` from all sides
+- `0-1` → `0rem` top/bottom, `1rem` left/right
+- `1-0` → `1rem` top/bottom, `0rem` left/right
+
+Mobile-only override:
+
+```html
+data-cookie-indent-mobile="1"
+data-cookie-indent-mobile="0-1"
+data-cookie-indent-mobile="1-0"
+```
+
+Optional behavior overrides on the same banner:
+
+```html
+data-cookie-delay="1000"
+data-cookie-days="10"
+data-cookie-position="bottom-left"
+data-cookie-position="bottom-right"
+```
+
+- `data-cookie-delay` controls show delay in milliseconds for that banner
+- `data-cookie-days` controls consent lifetime in days; when multiple banners exist, the clicked banner defines the stored cookie lifetime
+- `data-cookie-position` overrides the banner position for that element; default is `bottom-left`
+
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- Every container with `data-cookie="..."` becomes one banner instance.
+- The same consent cookie is shared across all banner instances on the page.
+- Clicking the accept control hides every matching banner until the cookie expires.
+- New setups should use a named marker such as `data-cookie="consent"` instead of the literal legacy value `banner`.
+
+The plugin can initialize multiple `data-cookie="..."` elements on one page. They share the same consent cookie and all hide once the visitor accepts.
+
+---
+
+## How To Check That It Works
 
 1. Publish the page.
 2. Open it in a private or incognito window.
@@ -101,15 +147,15 @@ No coding required. Add one class to a container and style it like any other Car
 
 No configuration is needed for normal use.
 
-Add a **Code** embed and paste this block **above** the plugin embed if you want to change timing or placement:
+Add a **Code** embed and paste this block **above** the plugin embed only if you want to change shared runtime behavior:
 
 ```html
 <script>
 window.CarrdPluginOptions = {
     cookieBanner: {
-        position: "bottom-left",
-        cookieDays: 7,
-        showDelay: 1000
+        cookieName: "cookies_accepted",
+        fadeInDuration: 400,
+        fadeOutDuration: 300
     }
 };
 </script>
@@ -121,9 +167,10 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 
 | Option | Default | What it changes |
 |--------|---------|-----------------|
-| `cookieDays` | `7` | How long the consent lasts in days |
-| `showDelay` | `1000` | Delay before showing the banner in ms |
 | `fadeInDuration` | `400` | Fade-in animation time in ms |
 | `fadeOutDuration` | `300` | Fade-out animation time in ms |
-| `position` | `bottom-left` | Banner position: `bottom-left`, `bottom-right`, `bottom-center`, `top-left`, `top-right`, `top-center` |
 | `cookieName` | `cookies_accepted` | Cookie name used to store consent |
+
+`data-cookie-delay`, `data-cookie-days`, and `data-cookie-position` are the preferred per-banner controls.
+
+Legacy `data-cookie="banner"`, `.cookie-banner`, and `#cookie-baner` targeting still work as fallback for older pages, but new setups should use a named `data-cookie="..."` marker.

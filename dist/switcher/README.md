@@ -2,8 +2,8 @@
 
 ## Version
 
-- Version: `0.1.21`
-- Build date (UTC): `2026-06-15`
+- Version: `0.1.22`
+- Build date (UTC): `2026-06-22`
 
 ## Installation
 
@@ -72,33 +72,36 @@ Place that style block below `theme-design-system.html`.
 
 Turns a Carrd **Buttons** element into a tab switcher. Each button shows one set of content and hides the rest. Works with any Carrd element — text, images, containers, or whole sections.
 
-No coding required for basic use. Connect buttons to targets by adding a custom attribute to the Buttons element and a matching class to each target.
+No coding required for basic use. Connect buttons to targets by adding custom attributes to the Buttons element and matching targets.
 
 ---
 
-## Setup: Class Mode
+## What You Do in Carrd
 
-**Option A — shared class (one element per button):**
+### Data Target Mode
+
+**Option A — one target per button by order:**
 
 1. Add a **Buttons** element to your page.
 2. Open its attributes panel and add: `data-switcher=pricing`
 3. Add the elements you want to switch.
-4. Open each element's class panel and add the class `pricing`.
+4. Open each target element's attributes panel and add: `data-switcher-target=pricing`.
 5. DOM order decides which button controls which element: first element → first button, second → second.
 
-**Option B — numbered classes (one button shows several elements at once):**
+**Option B — one button shows several elements at once:**
 
 1. Add a **Buttons** element and set attribute: `data-switcher=pricing`
 2. Add the elements you want to switch.
-3. Add class `pricing-1` to every element shown by the first button.
-4. Add class `pricing-2` to every element shown by the second button.
-5. Continue with `pricing-3`, `pricing-4` for more buttons.
+3. Add `data-switcher-target=pricing` to every target element.
+4. Add `data-switcher-index=1` to every element shown by the first button.
+5. Add `data-switcher-index=2` to every element shown by the second button.
+6. Continue with `3`, `4` for more buttons.
 
 You can replace `pricing` with any simple name.
 
 ---
 
-## Setup: Cluster Mode
+### Cluster Mode
 
 Use cluster mode when you want to switch whole containers by order.
 
@@ -113,7 +116,7 @@ Place the Buttons element **outside** the containers you are switching. If the b
 
 ---
 
-## Multiple Switchers
+### Multiple Switchers
 
 Use a unique `data-switcher` name for each independent switcher on the page.
 
@@ -121,14 +124,23 @@ Use the **same** name when two or more button lists should control the same stat
 
 ---
 
-## How to Verify
+## How It Works in Carrd
+
+- A controller is any **Buttons** element with `data-switcher="..."`.
+- Targets are matched either by `data-switcher-target` / `data-switcher-index` or by cluster mode attributes.
+- The first target is shown by default unless `defaultIndex` changes it.
+- Multiple controllers with the same `data-switcher` name stay synchronized.
+
+---
+
+## How To Check That It Works
 
 1. Publish or refresh the page.
 2. The first target should be visible by default.
 3. Click the second button — the first target hides and the second appears.
 4. The active button should become dark with white text.
 
-If nothing switches, check that the `data-switcher` value and the target class or cluster attribute value match exactly.
+If nothing switches, check that the `data-switcher` value and the `data-switcher-target` or cluster attribute value match exactly.
 
 ---
 
@@ -144,6 +156,8 @@ window.CarrdPluginOptions = {
     switcher: {
         defaultIndex: 1,
         warnOnMismatch: true,
+        targetAttribute: 'data-switcher-target',
+        targetIndexAttribute: 'data-switcher-index',
         instances: {
             price: {
                 defaultIndex: 2
@@ -175,6 +189,8 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 | `defaultIndex` | `1` | Button and target shown on page load |
 | `warnOnMismatch` | `true` | Shows console warnings for missing targets |
 | `scopeSelector` | `section` | Parent scope used to find class-mode targets |
+| `targetAttribute` | `data-switcher-target` | Attribute used to find v2 data targets |
+| `targetIndexAttribute` | `data-switcher-index` | Attribute used to map v2 targets to button indexes |
 | `modeAttribute` | `data-switcher-mode` | Attribute used to select `class-index` or `cluster` |
 | `clusterTargetAttribute` | `data-switcher-cluster` | Attribute used by cluster mode targets |
 | `clusterScopeSelector` | `.site-main` | Parent scope used to find cluster targets. Change this if your Buttons element and cluster targets do not share `.site-main` as a common parent. |
