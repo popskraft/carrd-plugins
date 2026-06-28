@@ -3,7 +3,7 @@
 ## Version
 
 - Version: `0.1.22`
-- Build date (UTC): `2026-06-22`
+- Build date (UTC): `2026-06-23`
 
 ## Installation
 
@@ -120,8 +120,8 @@ window.CarrdPluginOptions = {
     slider: {
         autoplay: true,
         breakpoints: {
-            737: { slidesPerView: 2 },
-            1280: { slidesPerView: 3 }
+            737: { slidesPerView: 3 },
+            1280: { slidesPerView: 4 }
         }
     }
 };
@@ -146,12 +146,26 @@ If you use multiple plugins, create one shared `window.CarrdPluginOptions` block
 | `loop` | `false` | Returns to the first slide after the last |
 | `autoplay` | `false` | Auto-advances slides |
 | `autoplayInterval` | `5000` | Delay between autoplay moves in ms |
-| `snapThreshold` | `0.3` | Drag distance as a fraction of one slide before snapping forward/back |
+| `snapThreshold` | `0.3` | Drag distance before snapping when `freeScroll` is `false` |
 | `hideOverflow` | `false` | Clips content outside the slider area |
-| `freeScroll` | `false` | Keeps inertial free scrolling instead of snapping to the nearest slide |
-| `wheelScroll` | `false` | Lets horizontal trackpad gestures move the slider |
-| `breakpoints` | `{}` | Changes settings at larger screen widths |
+| `freeScroll` | `true` | Keeps inertial free scrolling instead of snapping to the nearest slide |
+| `wheelScroll` | `true` | Lets horizontal trackpad gestures move the slider |
+| `momentumVelocityMultiplier` | `1.5` | Multiplies release velocity for a longer inertial throw |
+| `momentumFriction` | `0.965` | Controls inertial decay; higher values scroll farther |
+| `breakpoints` | `{ 737: { slidesPerView: 3 }, 1280: { slidesPerView: 4 } }` | Changes settings at larger screen widths |
 | `instances` | `{}` | Per-slider overrides using `data-slider` names |
+
+---
+
+Default visible slides:
+
+| Screen width | Visible slides |
+|---|---:|
+| Up to `736px` | `1.1` |
+| From `737px` | `3.1` |
+| From `1280px` | `4.1` |
+
+The `.1` comes from default `peek: 0.1`.
 
 ---
 
@@ -171,8 +185,8 @@ window.CarrdPluginOptions = {
             reviews: {
                 showArrows: false,
                 breakpoints: {
-                    737: { slidesPerView: 2 },
-                    1280: { slidesPerView: 3 }
+                    737: { slidesPerView: 3 },
+                    1280: { slidesPerView: 4 }
                 }
             }
         }

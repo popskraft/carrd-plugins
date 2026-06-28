@@ -16,11 +16,13 @@
     peek: 0.1,
     maxSlideWidth: 400,
     equalHeight: true,
-    freeScroll: false,
-    wheelScroll: false,
+    freeScroll: true,
+    wheelScroll: true,
+    momentumVelocityMultiplier: 1.5,
+    momentumFriction: 0.965,
     breakpoints: {
-      737: { slidesPerView: 4 },
-      1280: { slidesPerView: 5 }
+      737: { slidesPerView: 3 },
+      1280: { slidesPerView: 4 }
     }
   };
 
@@ -33,7 +35,7 @@
     slide: 'theme-slider-slide', dots: 'theme-slider-dots', dot: 'theme-slider-dot',
     nav: 'theme-slider-nav', prev: 'theme-slider-nav--prev', next: 'theme-slider-nav--next'
   };
-  const INTERACTIVE_SELECTOR = 'button, a, input, textarea, select, [role="button"]';
+  const NON_DRAG_SELECTOR = 'button, input, textarea, select, [role="button"], .' + S.nav + ', .' + S.dot;
   const FORM_FIELD_SELECTOR = 'input, textarea, select, [contenteditable="true"]';
 
   const ICONS = {
@@ -43,7 +45,14 @@
 
   const SLIDER_INSTANCES = [];
   const SNAP_EASE = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+  const FRAME_MS = 1000 / 60; // momentum is tuned for this reference frame
   const safeNamePattern = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
+
+  function prefersReducedMotion() {
+    return typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
 
   function normalizeName(value) {
     return (value || '')
@@ -84,7 +93,13 @@
       this.velocity = 0;
       this.lastDragTime = 0;
       this.lastDragX = 0;
+      this.lastFrame = 0;
+      this._cachedSlideWidth = null;
       this.animationId = null;
+      this.dragRenderId = null;
+      this.pendingDragTranslate = null;
+      this.wheelFrameId = null;
+      this.pendingWheelDelta = 0;
       this.dragAxis = null;
       this.snapEndHandler = null;
       this.snapFallbackTimer = null;
@@ -196,6 +211,8 @@
     destroy() {
       this.stopAutoplay();
       this.cancelMomentum();
+      this.cancelPendingDragRender();
+      this.cancelPendingWheel();
       this.dotHandlers.forEach(({ el, fn }) => el.removeEventListener('click', fn));
       this.dotHandlers = [];
       this.eventHandlers.forEach(({ target, event, handler, options }) => target.removeEventListener(event, handler, options));
@@ -210,6 +227,7 @@
     }
 
     updateSlidesPerView() {
+      this._cachedSlideWidth = null; // widths are reassigned below — drop the stale measurement
       const w = window.innerWidth;
       let spv = this.config.slidesPerView, gap = this.config.gap;
       let peek = this.config.peek, msw = this.config.maxSlideWidth;
@@ -218,10 +236,10 @@
       for (const bp of bps) {
         if (w >= bp) {
           const c = this.config.breakpoints[bp] || {};
-          spv = c.slidesPerView || spv;
-          if (Number.isFinite(+c.gap)) gap = +c.gap;
-          if (Number.isFinite(+c.peek)) peek = +c.peek;
-          if (Number.isFinite(+c.maxSlideWidth)) msw = +c.maxSlideWidth;
+          spv = this.getFiniteConfigNumber(c, 'slidesPerView', spv);
+          gap = this.getFiniteConfigNumber(c, 'gap', gap);
+          peek = this.getFiniteConfigNumber(c, 'peek', peek);
+          msw = this.getFiniteConfigNumber(c, 'maxSlideWidth', msw);
         }
       }
 
@@ -278,7 +296,13 @@
     }
 
     getSlideWidth() {
-      return this.slideElements[0] ? this.slideElements[0].offsetWidth + this.currentGap : 0;
+      // offsetWidth forces reflow, so during a gesture (drag move / momentum frame) we cache it
+      // for the duration of that gesture. Outside a gesture we always read fresh, and every gesture
+      // entry/exit (cancelMomentum, finishMomentum) plus width changes (updateSlidesPerView) drop it.
+      if (this._cachedSlideWidth != null) return this._cachedSlideWidth;
+      const w = this.slideElements[0] ? this.slideElements[0].offsetWidth + this.currentGap : 0;
+      if (this.isDragging || this.animationId) this._cachedSlideWidth = w;
+      return w;
     }
 
     getMinTranslate() {
@@ -297,13 +321,37 @@
 
     // --- Drag handling ---
 
+    hasConfigValue(config, key) {
+      return Object.prototype.hasOwnProperty.call(config, key) && config[key] !== null && config[key] !== undefined;
+    }
+
+    getFiniteConfigNumber(config, key, fallback) {
+      if (!this.hasConfigValue(config, key)) return fallback;
+      const value = Number(config[key]);
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    getMomentumFriction() {
+      const value = Number(this.config.momentumFriction);
+      if (!Number.isFinite(value)) return 0.965;
+      return Math.min(0.995, Math.max(0.8, value));
+    }
+
+    getMomentumVelocityMultiplier() {
+      const value = Number(this.config.momentumVelocityMultiplier);
+      if (!Number.isFinite(value)) return 1.5;
+      return Math.min(4, Math.max(0, value));
+    }
+
     onDragStart(e) {
       if (this.slides.length <= 1) return;
       const isTouch = Boolean(e.touches || e.changedTouches);
       if (isTouch && e.target?.closest?.(FORM_FIELD_SELECTOR)) return;
-      if (!isTouch && e.target?.closest?.(INTERACTIVE_SELECTOR)) return;
+      if (!isTouch && e.target?.closest?.(NON_DRAG_SELECTOR)) return;
       const renderedTranslate = this.getRenderedTranslate();
       this.cancelMomentum();
+      this.cancelPendingWheel();
+      this.cancelPendingDragRender();
       this.translateX = this.normalizeTranslate(renderedTranslate);
       this.track.style.transform = `translateX(${this.translateX}px)`;
       this.isDragging = true;
@@ -318,6 +366,25 @@
       this.lastDragX = x;
       this.lastDragTime = Date.now();
       this.stopAutoplay();
+    }
+
+    cancelPendingDragRender() {
+      if (this.dragRenderId) {
+        cancelAnimationFrame(this.dragRenderId);
+        this.dragRenderId = null;
+      }
+      this.pendingDragTranslate = null;
+    }
+
+    scheduleDragRender(value) {
+      this.pendingDragTranslate = value;
+      if (this.dragRenderId) return;
+      this.dragRenderId = requestAnimationFrame(() => {
+        this.dragRenderId = null;
+        if (this.pendingDragTranslate == null) return;
+        this.track.style.transform = `translate3d(${this.pendingDragTranslate}px, 0, 0)`;
+        this.pendingDragTranslate = null;
+      });
     }
 
     suppressNextClick() {
@@ -350,7 +417,7 @@
       else if (t < min) t = min + (t - min) * 0.2;
 
       this.draggedTranslate = t;
-      this.track.style.transform = `translateX(${t}px)`;
+      this.scheduleDragRender(t);
       if (e.cancelable && this.dragAxis === 'horizontal') e.preventDefault();
     }
 
@@ -373,8 +440,9 @@
       if (Math.abs(this.draggedTranslate - this.dragStartTranslate) > 6) {
         this.suppressNextClick();
       }
+      this.cancelPendingDragRender();
       this.translateX = this.normalizeTranslate(this.draggedTranslate);
-      this.track.style.transform = `translateX(${this.translateX}px)`;
+      this.track.style.transform = `translate3d(${this.translateX}px, 0, 0)`;
       this.dragAxis = null;
 
       if (!this.config.freeScroll) {
@@ -411,24 +479,41 @@
 
       this.cancelMomentum();
       this.stopAutoplay();
-      this.translateX = this.normalizeTranslate(this.translateX - delta);
-      this.track.style.transform = `translateX(${this.translateX}px)`;
+      this.pendingWheelDelta += delta;
 
       if (e.cancelable) e.preventDefault();
 
-      if (this.config.freeScroll) {
-        this.syncIndexToTranslate();
-        if (this.config.autoplay) this.startAutoplay();
-        return;
-      }
+      if (this.wheelFrameId) return;
+      this.wheelFrameId = requestAnimationFrame(() => {
+        this.wheelFrameId = null;
+        const nextDelta = this.pendingWheelDelta;
+        this.pendingWheelDelta = 0;
+        this.translateX = this.normalizeTranslate(this.translateX - nextDelta);
+        this.track.style.transform = `translate3d(${this.translateX}px, 0, 0)`;
 
-      this.snapToNearest();
+        if (this.config.freeScroll) {
+          this.syncIndexToTranslate();
+          if (this.config.autoplay) this.startAutoplay();
+          return;
+        }
+
+        this.snapToNearest();
+      });
+    }
+
+    cancelPendingWheel() {
+      if (this.wheelFrameId) {
+        cancelAnimationFrame(this.wheelFrameId);
+        this.wheelFrameId = null;
+      }
+      this.pendingWheelDelta = 0;
     }
 
     finishMomentum({ snap }) {
       this.animationId = null;
+      this._cachedSlideWidth = null;
       this.translateX = this.normalizeTranslate(this.translateX);
-      this.track.style.transform = `translateX(${this.translateX}px)`;
+      this.track.style.transform = `translate3d(${this.translateX}px, 0, 0)`;
 
       if (snap) {
         this.snapToNearest();
@@ -440,15 +525,29 @@
     }
 
     startMomentum({ snap = true } = {}) {
+      if (prefersReducedMotion()) { this.velocity = 0; this.finishMomentum({ snap }); return; }
+
       const min = this.getMinTranslate();
-      const step = () => {
-        this.velocity *= 0.95;
-        this.translateX += this.velocity * 16;
+      this.velocity *= this.getMomentumVelocityMultiplier();
+      this.lastFrame = 0;
+      const friction = this.getMomentumFriction();
+      const step = (now) => {
+        // Frame-rate independent: scale decay and travel by the real elapsed time.
+        // Fall back to one reference frame when the timestamp isn't a usable monotonic value
+        // (dt <= 0), so decay always progresses instead of stalling.
+        let dt = now - this.lastFrame;
+        if (!this.lastFrame || !(dt > 0)) dt = FRAME_MS;
+        dt = Math.min(dt, 50);
+        this.lastFrame = now;
+        const frames = dt / FRAME_MS;
+
+        this.velocity *= Math.pow(friction, frames);
+        this.translateX += this.velocity * dt;
 
         if (this.translateX > 0) { this.translateX *= 0.8; this.velocity *= 0.5; }
         else if (this.translateX < min) { this.translateX = min + (this.translateX - min) * 0.8; this.velocity *= 0.5; }
 
-        this.track.style.transform = `translateX(${this.translateX}px)`;
+        this.track.style.transform = `translate3d(${this.translateX}px, 0, 0)`;
         if (Math.abs(this.velocity) > 0.05) this.animationId = requestAnimationFrame(step);
         else this.finishMomentum({ snap });
       };
@@ -499,7 +598,10 @@
       }
 
       const translate = transform.match(/translateX\((-?[\d.]+)px\)/);
-      return translate ? Number(translate[1]) : this.translateX;
+      if (translate) return Number(translate[1]);
+
+      const translate3d = transform.match(/translate3d\((-?[\d.]+)px,\s*0(?:px)?,\s*0(?:px)?\)/);
+      return translate3d ? Number(translate3d[1]) : this.translateX;
     }
 
     clearSnapTransition() {
@@ -523,9 +625,20 @@
 
       this.currentIndex = index;
       this.translateX = -this.getSlideWidth() * index;
+
+      if (prefersReducedMotion()) {
+        this.track.style.transition = '';
+        this.track.style.transform = `translateX(${this.translateX}px)`;
+        this.updateDotsAndArrows();
+        return;
+      }
+
       this.track.style.transition = SNAP_EASE;
       this.track.style.transform = `translateX(${this.translateX}px)`;
-      this.snapEndHandler = () => this.clearSnapTransition();
+      // Ignore transitionend bubbling up from slide content — only the track's own transform ends the snap.
+      this.snapEndHandler = (e) => {
+        if (e.target === this.track && e.propertyName === 'transform') this.clearSnapTransition();
+      };
       this.track.addEventListener('transitionend', this.snapEndHandler);
       this.snapFallbackTimer = setTimeout(() => this.clearSnapTransition(), 450);
       this.updateDotsAndArrows();
@@ -535,6 +648,8 @@
 
     cancelMomentum() {
       if (this.animationId) { cancelAnimationFrame(this.animationId); this.animationId = null; }
+      this._cachedSlideWidth = null;
+      this.cancelPendingDragRender();
       this.clearSnapTransition();
     }
 
