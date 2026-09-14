@@ -4,57 +4,35 @@ Shows a fixed consent banner and remembers the visitor's choice.
 
 ## Carrd Setup
 
-1. Add a **Container** for the banner.
+1. Add a **Container** for the banner with the policy text and an accept button.
 2. Add `data-cookie=consent` to the container.
-3. Add the policy text and an accept button inside it.
-4. Use a Carrd **Buttons** element, add `role=button` to the accept link, or add `data-cookie-accept` to the exact element that should accept.
-5. Style the container in Carrd.
+3. Use a **Buttons** element for the accept button, or add `data-cookie-accept` to the element that should accept.
 
-## Configuration
+## Options
 
-Use these optional attributes on the banner container:
+Add to the banner container:
 
-| Attribute | Example | Result |
-|---|---|---|
-| `data-cookie-position` | `bottom-right` | Sets `bottom-left` or `bottom-right` |
-| `data-cookie-delay` | `1000` | Delays display in milliseconds |
-| `data-cookie-days` | `10` | Sets consent lifetime in days |
-| `data-cookie-indent` | `0-1` | Sets desktop viewport offsets in rem |
-| `data-cookie-indent-mobile` | `1` | Sets mobile viewport offsets in rem |
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-cookie-position` | `bottom-left`, `bottom-center`, `bottom-right`, `top-left`, `top-center`, `top-right` | `bottom-left` | Screen position |
+| `data-cookie-delay` | milliseconds | `1000` | Delay before the banner appears |
+| `data-cookie-days` | days | `7` | How long the choice is remembered |
+| `data-cookie-indent` | rem, `1` or `0-1` (vertical-horizontal) | `1` | Distance from screen edges on desktop |
+| `data-cookie-indent-mobile` | rem, same format | `1-0.5` | Distance from screen edges on mobile |
 
-To change shared runtime values, add this in `Body End` above the bundle or plugin script:
+## Styling
 
-```html
-<script>
-window.CarrdPluginOptions = {
-  cookieBanner: {
-    cookieName: 'cookies_accepted',
-    fadeInDuration: 400,
-    fadeOutDuration: 300
-  }
-};
-</script>
-```
+No plugin tokens. Style the container in Carrd: background, padding, radius, shadow, width.
 
-| Option | Default | Result |
-|---|---|---|
-| `cookieName` | `'cookies_accepted'` | Cookie name used to store consent |
-| `cookieDays` | `7` | Consent lifetime in days (global default for `data-cookie-days`) |
-| `fadeInDuration` | `400` | Fade-in duration in milliseconds |
-| `fadeOutDuration` | `300` | Fade-out duration in milliseconds |
-| `showDelay` | `1000` | Delay before showing the banner, in milliseconds (global default for `data-cookie-delay`) |
-| `position` | `'bottom-left'` | Global default position (global default for `data-cookie-position`) |
-| `breakpoint` | `736` | Viewport width, in px, below which the mobile indent applies |
-| `indent` | `'1'` | Global default desktop offset in rem (global default for `data-cookie-indent`) |
-| `indentMobile` | `'1-0.5'` | Global default mobile offset in rem (global default for `data-cookie-indent-mobile`) |
-| `ariaLabel` | `'Cookie notice'` | Accessible label applied to the banner container |
+## Works With
 
-Per-container `data-cookie-*` attributes override these global values.
+- **Floating Cta**: both sit in screen corners. Keep them in different corners (Cookie Banner defaults to bottom left, Floating Cta to bottom right).
 
-## Verify
+## Troubleshooting
 
-1. Publish and open the page in a private window.
-2. Confirm the banner appears.
-3. Accept, refresh, and confirm it stays hidden.
+- The banner does not appear: test in a private window; a remembered choice hides it.
+- Accept does not close it: use a **Buttons** element or add `data-cookie-accept` to the exact accept element.
 
-If the button does not work, use a **Buttons** element, add `role=button`, or add `data-cookie-accept` directly on the intended element.
+## Get the Code
+
+Copy the current embed code and paste steps from [embed.md](embed.md).

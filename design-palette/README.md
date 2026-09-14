@@ -1,51 +1,30 @@
 # Design Palette
 
-Renders a compact color-token palette on the page so the active Carrd theme colors can be inspected visually.
+Shows the site's active theme colors as swatches with token names and color values.
 
 ## Carrd Setup
 
-Use this as a temporary visual helper while designing a page.
+1. Keep the `Design Palette` embed where the palette should appear (it is a visible embed, not a hidden one).
+2. Publish and review the colors.
+3. Delete or hide the embed before handing the site to a client.
 
-1. Add a visible **Embed** element where the palette should appear.
-2. Paste the inline embed code into that element. It already includes the `<div data-design-palette></div>` target, so the palette renders in that exact spot.
-3. Publish and refresh.
+## Options
 
-## Configuration
+No options.
 
-Defaults show the global color tokens from `theme-design-tokens.css`. Brand 1 is always available; Brand 2–4 are optional and appear when their complete triplets are defined. To change the title or token list, add this above the plugin:
+## Styling
 
-```html
-<script>
-window.CarrdPluginOptions = {
-  designPalette: {
-    title: 'Project palette',
-    tokens: [
-      '--theme-color-brand-1',
-      '--theme-color-brand-2',
-      '--theme-color-heading',
-      '--theme-color-surface'
-    ]
-  }
-};
-</script>
-```
+No plugin styles to change. The palette reads the colors defined by the theme and by your `Theme Customizing` embed.
 
-| Option | Default | Result |
-|---|---|---|
-| `enabled` | `true` | Set `false` to turn the palette off |
-| `title` | `'Design palette'` | Heading shown above the swatches |
-| `tokens` | built-in color-token list | Custom token list or grouped token list |
-| `targetSelector` | `'[data-design-palette]'` | Selector for visible target elements |
-| `showEmpty` | `false` | Show unresolved tokens instead of skipping them |
+## Works With
 
-## Verify
+- **Theme Customizing**: every color you override there appears in the palette, so it is the quickest check of a client brand. Brand 2–4 appear only when all three shades (`-light`, base, `-dark`) are defined.
 
-1. Publish and open the page.
-2. Confirm the palette appears where the embed was placed.
-3. Check that each swatch shows the token name and resolved color value.
+## Troubleshooting
 
-If the palette is empty, confirm the theme token embed is installed before this plugin.
+- The palette is empty: the `Theme Design System` embed must be in `Hidden → Head`.
+- A color did not change: check the token name in `Theme Customizing` against the name shown on the swatch.
 
-## API
+## Get the Code
 
-`window.CarrdDesignPalette.refresh()` re-renders the palette. `window.CarrdDesignPalette.getTokens()` returns the active token groups.
+Copy the current embed code and paste steps from [embed.md](embed.md).

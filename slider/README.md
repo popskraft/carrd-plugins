@@ -1,83 +1,74 @@
 # Slider
 
-Native CSS scroll-snap slider — turns consecutive Carrd containers into a
-touch/trackpad/mouse carousel using the browser's own scroll physics.
+Turns consecutive Carrd containers into a swipeable carousel with dots and arrows.
 
 ## Carrd Setup
 
-1. Add at least two **Container** elements with no unrelated block between them.
+1. Place two or more **Container** elements one after another, with nothing between them.
 2. Add the same name to each container, for example `data-slider=gallery`.
 3. Use a different name for each independent slider.
-4. All configuration goes on the **first** container of the cluster only —
-   attributes on later slides are ignored. There is no JS options object
-   (no `window.CarrdPluginOptions`).
 
-## Configuration
+All options go on the **first** container; options on later slides are ignored.
+
+## Options
 
 | Attribute | Values | Default | Result |
 |---|---|---|---|
-| `data-slider-mode` | `free` \| `center` | `free` | `free` scrolls with native momentum and no snapping; `center` snaps every slide to the middle of the frame. |
-| `data-slider-spv` | 1–3 numbers, decimals allowed: `1.2 3 4` | `1.2 3 4` | Slides per view for mobile / ≥737px / ≥1280px. |
-| `data-slider-gap` | 1–3 numbers in px: `12 16 24` | `16` | Gap between slides at the same breakpoints. |
-| `data-slider-autoplay` | milliseconds, e.g. `5000` | off | Advances slides automatically. Disabled entirely under `prefers-reduced-motion: reduce`. |
-| `data-slider-dots` | `on` \| `off` | `on` | Pagination dots in both modes. |
-| `data-slider-arrows` | `on` \| `off` | `on` | Prev/next arrows (hidden below 737px by default). |
-| `data-slider-arrows-mobile` | `on` \| `off` | `off` | Set to `on` to keep prev/next arrows visible below 737px too, instead of the default mobile hide. Has no effect if `data-slider-arrows=off`. |
+| `data-slider-mode` | `free`, `center` | `free` | `free` scrolls freely; `center` snaps each slide to the middle |
+| `data-slider-spv` | 1–3 numbers, e.g. `1.2 3 4` | `1.2 3 4` | Slides visible on mobile, from 737px, from 1280px |
+| `data-slider-gap` | 1–3 numbers in px, e.g. `12 16 24` | `16` | Space between slides at the same sizes |
+| `data-slider-autoplay` | milliseconds, e.g. `5000` | off | Advances slides automatically (off for visitors who reduce motion) |
+| `data-slider-dots` | `on`, `off` | `on` | Pagination dots |
+| `data-slider-arrows` | `on`, `off` | `on` | Previous/next arrows (hidden below 737px) |
+| `data-slider-arrows-mobile` | `on`, `off` | `off` | Keeps arrows visible below 737px |
 
-Triplet parsing for `spv`/`gap`: one value applies to all three breakpoints,
-two values map to mobile + (≥737px and ≥1280px), three values give each
-breakpoint its own number. `737` and `1280` are fixed module constants, not
-configurable. An invalid value falls back to the default and logs a single
-`console.warn('[slider] ...')` per instance — it never throws.
+One number applies to all screen sizes; two numbers mean mobile and larger screens. In center mode the first and last slides sit against the edges.
 
-```html
-<div data-slider="gallery" data-slider-spv="1 2.5 3" data-slider-gap="12 16 24">…</div>
-<div data-slider="gallery">…</div>
-<div data-slider="gallery">…</div>
+Example on the first container:
+
+```text
+data-slider=gallery
+data-slider-spv=1 2.5 3
+data-slider-gap=12 16 24
 ```
 
-### Center-mode edge behavior
+## Styling
 
-There is no inline padding on the scroller. The first slide sits flush
-against the left edge and the last slide flush against the right edge;
-only the slides in between get centered. This is intentional (native
-`scroll-snap-align: center` clamps at the scroll boundaries).
+Style the slide containers in Carrd. Dots and arrows follow the theme UI controls by default.
 
-## Verify
+| Token | Default | Controls |
+|---|---|---|
+| `--theme-slider-dot-size` | `var(--theme-ui-dot-size)` | Dot size |
+| `--theme-slider-dot-bg` | `var(--theme-ui-dot-bg)` | Dot color |
+| `--theme-slider-dot-active-bg` | `var(--theme-ui-dot-active-bg)` | Active dot color |
+| `--theme-slider-dots-margin` | `1rem` | Space above dots |
+| `--theme-slider-dots-margin-mobile` | `0.75rem` | Space above dots on mobile |
+| `--theme-slider-arrow-size` | `var(--theme-ui-control-size)` | Arrow button size |
+| `--theme-slider-arrow-bg` | `var(--theme-ui-control-bg)` | Arrow background |
+| `--theme-slider-arrow-color` | `var(--theme-ui-control-color)` | Arrow icon color |
+| `--theme-slider-arrow-radius` | `var(--theme-ui-control-radius)` | Arrow corner radius |
+| `--theme-slider-arrow-offset` | `0.5rem` | Arrow distance from slider edges |
 
-1. Open `demo.html` directly in a browser (no build step needed).
-2. Touch/trackpad: native inertia, slides fix to center, you can't flick past
-   more than one slide per gesture.
-3. Mouse: drag works, cursor shows grab/grabbing, a link click is suppressed
-   right after a drag but fires normally on a plain click.
-4. First/last slide sit flush at the edges; slides in between show a gap on
-   both sides.
-5. `free` mode: inertia is smooth, no jump on release, and it stops without
-   snapping back.
-6. Arrows disable at the first/last slide; dots are clickable; ArrowLeft/
-   ArrowRight move the slider when it has focus.
-7. Resize across the 737/1280 breakpoints and confirm widths recompute
-   without a position jump.
-8. Safari (no native `scrollend`): dots still sync, via the debounced
-   `scroll` fallback.
-
-## Design
-
-Uses the `--theme-slider-*` custom properties, so dots/arrows are themeable
-out of the box. Override them in a `Head` style embed after the theme files:
+Override in the `Theme Customizing` embed:
 
 ```html
 <style>
 :root {
-  --theme-slider-dot-active-bg: currentColor;
-  --theme-slider-arrow-bg: white;
+  --theme-slider-dot-active-bg: #0055ff;
 }
 </style>
 ```
 
+## Works With
+
+- Buttons inside slides, including **Modal** links and **Shopping Cart** product buttons, work on a normal click; a drag does not trigger them.
+- **Grid Cluster** and **Stacker** also group consecutive containers: give a container only one of `data-slider`, `data-grid`, `data-stacker`.
+
 ## Troubleshooting
 
-If nothing moves, confirm all slides are consecutive and share the same
-`data-slider` value. If a numeric attribute (`spv`, `gap`, `autoplay`) is
-ignored, check the browser console for a `[slider]` warning — invalid
-values fall back to the default rather than breaking the slider.
+- Nothing moves: all slides must be consecutive and share the same `data-slider` name.
+- An option is ignored: put it on the first container and check the value format; an invalid value falls back to the default.
+
+## Get the Code
+
+Copy the current embed code and paste steps from [embed.md](embed.md).

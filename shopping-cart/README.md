@@ -1,104 +1,81 @@
 # Shopping Cart
 
-Adds a floating cart and writes the order summary into a Carrd checkout form. This is a client-side order UI: the buyer builds a cart in the browser and its contents are written into your Carrd form for submission, while payment, inventory and order processing stay on the side of that form and whoever handles it — there is no payment gateway, no backend and no database here.
+Adds a floating cart and sends the order summary into a Carrd form; payment, stock, and order handling stay with that form and its owner.
 
 ## Carrd Setup
 
-1. Add a **Section Break** named `shopping-cart`.
-2. Add a **Form** with ID `form-shopping-cart` inside that section.
-3. Add an **Order Details** textarea inside the form.
-   Set its field ID to `order-details`. If you can add custom attributes, also set `data-shopping-cart-output=order-details`.
-4. Add this action to each product button: `CarrdShoppingCart.add('Product Name', 29.99)`.
+1. Add a **Section Break** named `shopping-cart` where checkout should happen.
+2. Inside that section, add a **Form** with the ID `form-shopping-cart`.
+3. In the form, add a textarea field with the ID `order-details`.
+4. For each product button, set its `onclick` event to `CarrdShoppingCart.add('Product Name', 29.99)`.
 
-## Configuration
+There is no payment gateway, backend, or database: the visitor submits the order through the Carrd form.
 
-Defaults use dollars and place the widget at the top right. To change them, add this in `Body End` above the plugin:
+## Options
+
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-shopping-cart-checkout-target` | section name | `shopping-cart` | Section the page scrolls to on checkout |
+
+Currency, cart position, and labels are set for the whole site in the `Theme Customizing` embed:
 
 ```html
 <script>
-window.CarrdPluginOptions = {
+window.CarrdPluginOptions = Object.assign(window.CarrdPluginOptions || {}, {
   shoppingCart: {
-    currency: '$',
-    currencyPosition: 'before',
-    position: 'top-right'
+    currency: '€',
+    currencyPosition: 'after',
+    position: 'bottom-right',
+    texts: {
+      title: 'Cart',
+      empty: 'Your cart is empty.',
+      checkout: 'Checkout',
+      total: 'Total',
+      remove: 'Remove',
+      addedToCart: 'Added "${name}" to cart'
+    }
   }
-};
+});
 </script>
 ```
 
-Positions: `top-right`, `top-left`, `bottom-right`, `bottom-left`, or `bottom-center`.
-
-| Option | Default | Result |
+| Option | Values | Default |
 |---|---|---|
-| `currency` | `'$'` | Currency symbol shown with each price |
-| `currencyPosition` | `'before'` | `'before'` shows `$10`, `'after'` shows `10$` |
-| `position` | `'top-right'` | Floating widget position |
-| `storageKey` | `'carrd_cart_v1'` | `localStorage` key used to persist the cart |
-| `orderInputSelector` | `'[data-shopping-cart-output="order-details"]'` | Selector for the checkout field the order summary is written into |
-| `checkoutTargetId` | `'shopping-cart'` | Section id scrolled to on checkout |
+| `currency` | any symbol | `$` |
+| `currencyPosition` | `before`, `after` | `before` |
+| `position` | `top-right`, `bottom-right`, `bottom-left`, `bottom-center` | `top-right` |
+| `texts` | visitor-facing labels; `${name}` inserts the product name | English labels |
 
-Add `data-shopping-cart-checkout-target` to any element to override `checkoutTargetId` without touching the config block; its value is used as the scroll-target id instead.
+## Styling
 
-## Verify
+| Token | Default | Controls |
+|---|---|---|
+| `--theme-shopcart-widget-bg` | `var(--theme-color-dark)` | Floating cart button background |
+| `--theme-shopcart-widget-color` | `var(--theme-color-white)` | Floating cart icon color |
+| `--theme-shopcart-badge-bg` | `var(--theme-color-brand-red)` | Item count badge |
+| `--theme-shopcart-bg` | `var(--theme-color-surface)` | Cart panel background |
+| `--theme-shopcart-text` | `var(--theme-color-text)` | Cart panel text |
+| `--theme-shopcart-heading-color` | `var(--theme-color-heading)` | Cart title |
+| `--theme-shopcart-footer-bg` | `var(--theme-color-surface-muted)` | Total and checkout area |
+| `--theme-shopcart-btn-bg` | `var(--theme-button-primary-bg)` | Checkout button background |
+| `--theme-shopcart-btn-text` | `var(--theme-button-primary-text)` | Checkout button text |
+| `--theme-shopcart-btn-radius` | `0.125rem` | Checkout button radius |
+| `--theme-shopcart-accent` | `var(--theme-color-brand-1)` | Accent color |
+| `--theme-shopcart-overlay-bg` | `var(--theme-overlay-bg)` | Backdrop behind the panel |
+| `--theme-shopcart-toast-bg` | `var(--theme-color-text)` | "Added to cart" message background |
 
-1. Publish and add a product.
-2. Confirm the floating cart appears with the correct item and total.
-3. Click Checkout and confirm the order summary reaches the textarea.
+By default the cart follows the theme brand, button, and surface colors.
 
-If checkout stays empty, confirm the section name is `shopping-cart`, the form ID is `form-shopping-cart`, and the textarea renders as `name="order-details"` inside that form.
+## Works With
 
-## Design
+- **Modal**: keep the checkout form in the `shopping-cart` section, not inside a modal, because checkout scrolls the page to that section. To block popups while the cart is open, see the Modal guide.
+- **Switcher**: product buttons inside switcher panels add items the same way.
 
-Add a separate `Head` style embed after the theme files:
+## Troubleshooting
 
-```html
-<style>
-:root {
-  --theme-shopcart-bg: var(--theme-color-surface);
-  --theme-shopcart-text: var(--theme-color-text);
-  --theme-shopcart-accent: var(--theme-color-brand-1);
-  --theme-shopcart-btn-bg: var(--theme-color-brand-1);
-  --theme-shopcart-overlay-bg: var(--theme-overlay-bg);
-}
-</style>
-```
+- The cart does not appear: check the button's `onclick` text, including quotes and a number price.
+- The order does not reach the form: the section must be named `shopping-cart`, the form ID `form-shopping-cart`, and the textarea ID `order-details`.
 
-## Advanced: Localization
+## Get the Code
 
-Override labels under `shoppingCart.texts` in the same configuration block:
-
-```javascript
-texts: {
-  title: 'Cart',
-  empty: 'Your cart is empty.',
-  checkout: 'Checkout',
-  total: 'Total',
-  remove: 'Remove',
-  required: 'Required',
-  addedToCart: 'Added "${name}" to cart',
-  errorName: 'Invalid product name',
-  errorPrice: 'Invalid price for ${name}',
-  errorForm: 'Error: Could not find the order form. Please contact support.',
-  consoleErrorForm: 'Carrd Cart: Could not find the checkout textarea. Ensure [data-shopping-cart-output="order-details"] exists or use the native Carrd order-details textarea inside #form-shopping-cart.'
-}
-```
-
-`addedToCart` and `errorPrice` support a `${name}` placeholder. `consoleErrorForm` is logged to the browser console only, not shown to visitors.
-
-## API
-
-```javascript
-CarrdShoppingCart.add('Product', 29.99);
-CarrdShoppingCart.add('Product', 29.99, {
-  id: 'sku-123',        // explicit line-item key instead of the name+price+source hash
-  sourceLabel: 'Combo',  // groups/labels the item when the same name is added from different sources
-  displayName: 'Product (Combo)' // overrides the name shown in the cart UI
-});
-CarrdShoppingCart.remove('Product');
-CarrdShoppingCart.clear();
-CarrdShoppingCart.getCart();
-CarrdShoppingCart.getTotal();
-CarrdShoppingCart.open();
-CarrdShoppingCart.close();
-CarrdShoppingCart.checkout();
-```
+Copy the current embed code and paste steps from [embed.md](embed.md).

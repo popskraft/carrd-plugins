@@ -1,69 +1,59 @@
 # Floating Cta
 
-Clones marked Carrd elements into fixed CTAs that appear after scrolling.
+Shows a fixed copy of a Carrd button or element in a screen corner after the visitor scrolls.
 
 ## Carrd Setup
 
-1. Create the CTA element in Carrd.
-2. Add `data-floating=contact`.
-3. Add `data-floating-position=bottom-right`.
-4. Repeat with another name for each independent CTA.
+1. Build the call-to-action element in Carrd, for example a **Buttons** element.
+2. Add `data-floating=contact` and `data-floating-position=bottom-right`.
+3. Use another name for each independent floating element.
 
-Supported positions: `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, and `bottom-right`.
+The original element stays in place; the floating copy appears after scrolling.
 
-Optional attributes:
+## Options
 
-| Attribute | Result |
-|---|---|
-| `data-floating-position-mobile=bottom-center` | Changes the mobile position |
-| `data-floating-hide=mobile` | Hides the floating copy on mobile |
-| `data-floating-hide=desktop` | Hides the floating copy on desktop |
+Add to the source element:
 
-## Configuration
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-floating-position` | `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right` | `bottom-right` | Position on desktop |
+| `data-floating-position-mobile` | same values | desktop position | Position on mobile |
+| `data-floating-hide` | `mobile`, `desktop` | — | Hides the copy on that screen size |
 
-Defaults show each floating copy after `800px`. To change that, add this in `Body End` above the bundle or plugin script:
+The copy appears after 800px of scrolling. To change that for the whole site, add to the `Theme Customizing` embed:
 
 ```html
 <script>
-window.CarrdPluginOptions = {
-  floatingCta: {
-    scrollY: 800,
-    defaultPosition: 'bottom-right'
-  }
-};
+window.CarrdPluginOptions = Object.assign(window.CarrdPluginOptions || {}, {
+  floatingCta: { scrollY: 400 }
+});
 </script>
 ```
 
-| Option | Default | Result |
+## Styling
+
+The copy keeps the Carrd style of the source element.
+
+| Token | Default | Controls |
 |---|---|---|
-| `scrollY` | `800` | Scroll distance in px before a copy appears |
-| `defaultPosition` | `'bottom-right'` | Global default position |
-| `selector` | `'[data-floating]'` | Attribute selector used to find source elements |
-| `breakpoint` | `736` | Viewport width, in px, used to tell mobile from desktop |
-| `showOnMobile` | `true` | Set `false` to hide every floating copy on mobile |
-| `showOnDesktop` | `true` | Set `false` to hide every floating copy on desktop |
+| `--theme-floating-cta-edge` | `1.25rem` | Distance from screen edges on desktop |
+| `--theme-floating-cta-mobile-edge` | `1rem` | Distance from screen edges on mobile |
+| `--theme-floating-cta-offset` | `24px` | Slide-in distance when the copy appears |
+| `--theme-floating-cta-fade-duration` | `0.3s` | Fade duration |
+| `--theme-floating-cta-move-duration` | `0.45s` | Slide duration |
+| `--theme-floating-cta-z-index` | `99999` | Stacking above page content |
 
-## Verify
+## Works With
 
-1. Publish the page.
-2. Scroll past the configured threshold.
-3. Confirm the original element stays in place and its fixed copy appears.
+- **Modal**: a floating button with the link `#data-modal-contact` opens the modal like the original.
+- **Header Nav**: a pinned header does not hide floating copies; use bottom positions so they do not overlap it.
+- **Cookie Banner**: keep the two in different corners.
 
-If no copy appears, check `data-floating`, the scroll distance, and any `data-floating-hide` value. A copy also stays hidden on desktop whenever the page has a fixed header (`.site-header.header-fixed`) — that combination is treated as already having a persistent CTA.
+## Troubleshooting
 
-## Design
+- No copy appears: scroll further than the threshold and check `data-floating` and `data-floating-hide`.
+- The copy covers content on mobile: set `data-floating-position-mobile=bottom-center` or `data-floating-hide=mobile`.
 
-Add a separate `Head` style embed after the theme files:
+## Get the Code
 
-```html
-<style>
-:root {
-  --theme-floating-cta-edge: 1.25rem;
-  --theme-floating-cta-mobile-edge: 1rem;
-  --theme-floating-cta-z-index: 99999;
-  --theme-floating-cta-offset: 24px;
-  --theme-floating-cta-fade-duration: 0.3s;
-  --theme-floating-cta-move-duration: 0.45s;
-}
-</style>
-```
+Copy the current embed code and paste steps from [embed.md](embed.md).

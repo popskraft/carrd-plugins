@@ -1,84 +1,56 @@
 # Switcher
 
-Turns a Carrd Buttons element into synchronized tabs for elements or whole containers.
+Turns a Carrd Buttons element into tabs that show one group of elements or containers at a time.
 
 ## Carrd Setup
 
-### Data Targets
-
 1. Add `data-switcher=pricing` to a **Buttons** element.
-2. Add `data-switcher-target=pricing` to each target.
+2. Add `data-switcher-target=pricing` to each element or container that a button should show.
 3. Keep targets in button order, or add `data-switcher-index=1`, `2`, and so on.
 
-Use the same index on several targets when one button should show them together, including full containers.
+Give several targets the same index to show them together. Two Buttons elements with the same `data-switcher` name stay in sync.
 
-Controllers with the same `data-switcher` name stay synchronized.
+## Options
 
-## Configuration
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-switcher-default-index` | button number, from `1` | `1` | Tab shown before any click; set on the Buttons element |
+| `data-switcher-index` | number, from `1` | order on the page | Which button shows this target |
 
-Defaults show the first target. Add this in `Body End` above the bundle or plugin script to change it:
+## Styling
 
-```html
-<script>
-window.CarrdPluginOptions = {
-  switcher: {
-    defaultIndex: 1,
-    warnOnMismatch: true,
-    instances: {
-      pricing: { defaultIndex: 2 }
-    }
-  }
-};
-</script>
-```
+Style the buttons in Carrd; the active button uses the tokens below.
 
-The `instances` key must match the `data-switcher` value. `data-switcher-default-index` on the controller wins over both `instances` and the global `defaultIndex`.
-
-| Option | Default | Result |
+| Token | Default | Controls |
 |---|---|---|
-| `defaultIndex` | `1` | Default panel shown before any click |
-| `warnOnMismatch` | `true` | Logs console warnings for invalid indexes or missing targets |
-| `enabled` | `true` | Set `false` to disable the plugin globally |
-| `controllerSelector` | `'[data-switcher]'` | Attribute selector used to find controllers |
-| `scopeSelector` | `'section'` | Ancestor selector searched for matching targets |
-| `targetAttribute` | `'data-switcher-target'` | Attribute name that names each target |
-| `targetIndexAttribute` | `'data-switcher-index'` | Attribute name that sets an explicit target index |
+| `--theme-switcher-active-bg` | `var(--theme-button-primary-bg)` | Active button background |
+| `--theme-switcher-active-color` | `var(--theme-button-primary-text)` | Active button text |
+| `--theme-switcher-active-border` | same as active background | Active button border |
+| `--theme-switcher-inactive-bg` | `inherit` | Inactive button background |
+| `--theme-switcher-animation-duration` | `1s` | Content reveal duration |
+| `--theme-switcher-animation-distance` | `0.75rem` | How far content slides in |
+| `--theme-switcher-animation-easing` | `ease-out` | Reveal easing |
 
-## Verify
-
-1. Publish or refresh the page.
-2. Confirm the configured default target is visible.
-3. Click each button and confirm only its target group is shown.
-4. If two controllers share a name, confirm they stay synchronized.
-
-If nothing switches, compare controller, target, and index values exactly.
-
-Legacy markup that used indexed classes (`.pricing-1`, `.pricing-2`, …) or a shared `.pricing` class still resolves to a target index without any `data-switcher-target`/`data-switcher-index` attributes — kept for backward compatibility, not recommended for new setups.
-
-## Design
-
-Add a separate `Head` style embed after the theme files:
+Override in the `Theme Customizing` embed. Scope to `[data-switcher="pricing"]` to style one switcher only:
 
 ```html
 <style>
-:root {
-  --theme-switcher-active-bg: #000000;
-  --theme-switcher-active-color: #ffffff;
-  --theme-switcher-animation-duration: 0.3s;
-  --theme-switcher-animation-distance: 0.5rem;
+[data-switcher="pricing"] {
+  --theme-switcher-active-bg: #111111;
 }
 </style>
 ```
 
-Scope variables to `[data-switcher="pricing"]` when one controller needs different colors.
+## Works With
 
-## API
+- **Grid Cluster**, **Slider**: whole containers can be switcher targets, for example monthly and yearly pricing.
+- **Shopping Cart**: product buttons inside switcher panels add items as usual.
 
-```javascript
-CarrdSwitcher.show('pricing', 2);
-CarrdSwitcher.next('pricing');
-CarrdSwitcher.prev('pricing');
-CarrdSwitcher.refresh();
-```
+## Troubleshooting
 
-Indexes start at `1`.
+- Nothing switches: the Buttons name, target names, and indexes must match exactly.
+- The wrong tab shows first: check `data-switcher-default-index` on the Buttons element.
+
+## Get the Code
+
+Copy the current embed code and paste steps from [embed.md](embed.md).

@@ -1,131 +1,69 @@
 # Header Nav
 
-Adds a mobile hamburger for selected elements inside Carrd's header.
+Collapses selected header elements into a hamburger menu on mobile and can pin the header while scrolling.
 
 ## Carrd Setup
 
 1. Build the header inside the `#header` section.
-2. Add class `header-mobile-hide` to every element that should hide behind the hamburger.
+2. Add the class `header-mobile-hide` to every element that should move into the mobile menu.
 3. Leave always-visible elements, such as the logo, without that class.
 
-No wrapper or sticky-header class is required.
-Legacy class `header-mobile-el-collapsing` still works, but use `header-mobile-hide` for new markup.
+The hamburger goes into the header's first cell. If the logo is in another cell, give the logo element the ID `header-primary-section` so the hamburger sits next to it.
 
-### Hamburger cell (optional)
+## Options
 
-By default the hamburger is placed in the header's first cell. If your logo is
-not in the first cell (for example: links, logo, buttons), give the logo
-component the ID `header-primary-section` (in Carrd: select the element →
-settings → ID). The hamburger then lands in the same cell as the logo. The
-cells around it, if they contain only `header-mobile-hide` elements, collapse
-away on mobile as usual.
+Add to the header container (`#header` or its first container):
 
-```html
-<div id="header-primary-section" class="image-component">
-```
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-header-position` | `fixed`, `sticky` | — | `fixed` pins the whole header from the start; `sticky` pins it when the container with the attribute reaches the top |
+| `data-header-nav-fixed-offset` | number in rem, or a CSS length | `0` | Gap between the pinned header and the top of the screen |
+| `data-header-nav-toggle-top` | number in rem, or a CSS length | `1rem` | Hamburger distance from the top; on a pinned header, a nudge up or down from center |
 
-Carrd strips custom `data-*` attributes from components but keeps the ID, which
-is why the marker is an ID. If no element has this ID, the first cell is used as
-before.
+The menu switches to mobile below 737px. Anchor links scroll past a pinned header automatically.
 
-## Configuration
+## Styling
 
-Defaults use a `736px` mobile breakpoint. To change it, add this in `Body End` above the bundle or plugin script:
+Give a pinned header a solid or semi-transparent background in Carrd.
 
-```html
-<script>
-window.CarrdPluginOptions = {
-  headerNav: {
-    breakpoint: 736,
-    closeOnLinkClick: true
-  }
-};
-</script>
-```
+| Token | Default | Controls |
+|---|---|---|
+| `--theme-header-nav-toggle-size` | `46px` | Hamburger button size |
+| `--theme-header-nav-toggle-top` | `1rem` | Hamburger distance from the top |
+| `--theme-header-nav-toggle-right` | `1rem` | Hamburger distance from the right |
+| `--theme-header-nav-toggle-radius` | `0.5rem` | Hamburger corner radius |
+| `--theme-header-nav-toggle-bg` | `rgba(255, 255, 255, 0.4)` | Hamburger background |
+| `--theme-header-nav-toggle-backdrop` | `blur(10px)` | Blur behind the hamburger |
+| `--theme-header-nav-bar-color` | `var(--theme-nav-color)` | Hamburger line color |
+| `--theme-header-nav-bar-width` | `22px` | Line width |
+| `--theme-header-nav-bar-height` | `2px` | Line thickness |
+| `--theme-header-nav-bar-gap` | `5px` | Space between lines |
+| `--theme-header-nav-duration` | `300ms` | Menu open/close speed |
+| `--theme-header-nav-fixed-shadow` | `none` | Shadow under a pinned header |
+| `--theme-header-nav-fixed-offset` | `0rem` | Gap above a pinned header |
+| `--theme-header-nav-fixed-z-index` | `9000` | Stacking of a pinned header |
 
-## Verify
-
-1. Publish and resize below the breakpoint.
-2. Confirm the hamburger appears and marked elements are hidden immediately.
-3. Open the menu, click a link, and press `Escape` to check close behavior.
-4. Resize above the breakpoint and confirm the full header returns.
-
-If inactive, confirm `#header` contains at least one `.header-mobile-hide` element.
-
-## Advanced: fixed / sticky header
-
-Pin the header while scrolling by adding `data-header-position` to the header container (`#header > .container-component`), or to `#header` itself:
-
-- `data-header-position=fixed` — the whole header pins to the top of the viewport from first paint and stays there.
-- `data-header-position=sticky` — the header scrolls up until the container that carries the attribute reaches the top, then pins. Rows above it (for example a topnav) scroll away first.
-
-The header stays in normal flow (it uses `position: sticky` internally), so it reserves its own space — content does not jump — and each container width mode keeps its width: `max` (no class), `full` (Edge to Edge), and `full screen` (Full bleed) all work. No spacer element is needed. In-page anchor links are offset automatically so targets are not hidden behind the bar.
-
-Optional design tokens:
+Override in the `Theme Customizing` embed:
 
 ```html
 <style>
 :root {
-  --theme-header-nav-fixed-offset: 0rem;   /* gap from the top edge; default 0 */
-  --theme-header-nav-fixed-z-index: 9000;
-  --theme-header-nav-fixed-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  --theme-header-nav-bar-color: #111111;
+  --theme-header-nav-fixed-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 </style>
 ```
 
-`--theme-header-nav-fixed-offset` pushes the pinned bar down from the top edge (any CSS length, default `0`) and is added to the anchor scroll offset automatically. It applies to both `fixed` and `sticky`.
+## Works With
 
-For a per-header override, add `data-header-nav-fixed-offset` next to `data-header-position` (a bare number is read as rem; a value with a unit is used as-is):
-
-```text
-data-header-position=fixed
-data-header-nav-fixed-offset=1
-```
-
-Give the header container a solid or semi-opaque background in Carrd; a fully transparent pinned bar lets content show through.
-
-## Design
-
-Add a separate `Head` style embed after the theme files:
-
-```html
-<style>
-:root {
-  --theme-header-nav-toggle-position: fixed;
-  --theme-header-nav-toggle-top: 1rem;
-  --theme-header-nav-toggle-right: 1rem;
-  --theme-header-nav-toggle-size: 46px;
-  --theme-header-nav-toggle-radius: 0.5rem;
-  --theme-header-nav-toggle-bg: rgba(255, 255, 255, 0.2);
-  --theme-header-nav-toggle-backdrop: blur(10px);
-  --theme-header-nav-toggle-z-index: 100000;
-  --theme-header-nav-toggle-outline: 2px solid var(--theme-focus-ring-color);
-  --theme-header-nav-toggle-outline-offset: 2px;
-  --theme-header-nav-bar-gap: 5px;
-  --theme-header-nav-bar-width: 22px;
-  --theme-header-nav-bar-height: 2px;
-  --theme-header-nav-bar-color: currentColor;
-  --theme-header-nav-bar-radius: 999px;
-  --theme-header-nav-duration: 300ms;
-}
-</style>
-```
-
-### Hamburger vertical position
-
-The toggle's vertical position depends on whether the header is pinned:
-
-- **Normal header** — the toggle is fixed to the top-right of the viewport at `--theme-header-nav-toggle-top` (default `1rem`). This stays correct when the header scrolls off-screen.
-- **Fixed / sticky header** (`data-header-position=fixed` or `data-header-position=sticky`) — the toggle is pinned together with the header, so it instead centers vertically on the primary (logo) row and stays roughly centered as the logo height changes.
-
-Per-header tuning uses the same attribute, `data-header-nav-toggle-top`, on the header container (`#header > .container-component`) or on `#header` itself. A bare number is read as rem; a value with a unit is used as-is:
-
-```text
-data-header-nav-toggle-top=2
-```
-
-Its meaning follows the mode: on a normal header it is the distance from the viewport top (default `1rem`); on a fixed/sticky header it is a `+`/`-` nudge from the center (default `0`, so positive moves down and negative moves up).
+- **Stacker**: with a pinned header, set `data-stacker-offset` to the header height so cards pin below it.
+- **Floating Cta**: a pinned header does not hide floating copies; place them at the bottom.
 
 ## Troubleshooting
 
-Avoid background blur on the authored header container when using the default fixed hamburger. Blur can make the toggle scroll with the header instead of staying fixed to the viewport.
+- No hamburger on mobile: `#header` needs at least one element with `header-mobile-hide`.
+- The hamburger scrolls away with the header: remove background blur from the header container.
+
+## Get the Code
+
+Copy the current embed code and paste steps from [embed.md](embed.md).

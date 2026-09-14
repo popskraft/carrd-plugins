@@ -1,77 +1,57 @@
 # Accordeon
 
-Shows or hides a group of Carrd containers from a normal button link.
+Opens and closes a group of Carrd containers when a visitor clicks a button.
 
 ## Carrd Setup
 
-1. Add a **Buttons** element.
-2. Set its link to `#data-accordeon-group`.
-3. Add `data-accordeon=group` to every container in the group.
-4. Replace `group` with any short group name.
+1. Add `data-accordeon=details` to every container that should open and close together.
+2. Add a **Buttons** or **Links** element and set its link to `#data-accordeon-details`.
+3. Use a different name for each independent group.
 
-The link suffix and every target value must match exactly.
+The name in the link and in the attribute must match exactly. Groups start closed.
 
-## Configuration
+## Options
 
-Defaults work for normal use. To change the initial state or scrolling, add this in `Body End` above the bundle or plugin script:
+Add to any one container of the group:
 
-```html
-<script>
-window.CarrdPluginOptions = {
-  accordeon: {
-    defaultOpen: false,
-    scrollOnOpen: true,
-    scrollBehavior: 'smooth'
-  }
-};
-</script>
-```
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-accordeon-default-open` | `on`, `off` | `off` | Group starts open |
+| `data-accordeon-scroll` | `on`, `off` | `on` | Scrolls to the group when it opens |
+| `data-accordeon-scroll-behavior` | `smooth`, `auto` | `smooth` | Smooth or instant scroll |
+| `data-accordeon-scroll-block` | `start`, `center`, `end`, `nearest` | `start` | Where the opened group lands on screen |
 
-| Option | Default | Result |
+## Styling
+
+Style the containers and the button in Carrd. Animation tokens:
+
+| Token | Default | Controls |
 |---|---|---|
-| `defaultOpen` | `false` | Opens every group on load |
-| `scrollOnOpen` | `true` | Scrolls to a group when it opens |
-| `scrollBehavior` | `'smooth'` | Scroll behavior passed to `scrollIntoView` (`'smooth'` or `'auto'`) |
-| `scrollBlock` | `'start'` | Vertical alignment passed to `scrollIntoView` (`'start'`, `'center'`, `'end'`, `'nearest'`) |
-| `enabled` | `true` | Set `false` to disable the plugin globally |
+| `--theme-accordeon-toggle-duration` | `0.25s` | Open/close transition |
+| `--theme-accordeon-animation-duration` | `0.28s` | Content reveal duration |
+| `--theme-accordeon-animation-distance` | `0.5rem` | How far content slides in |
+| `--theme-accordeon-animation-easing` | `ease-out` | Reveal easing |
 
-Per-container overrides win over the global config above. Add any of these to one container in a group:
-
-| Attribute | Values | Result |
-|---|---|---|
-| `data-accordeon-default-open` | `on` \| `off` | Overrides `defaultOpen` for that group |
-| `data-accordeon-scroll` | `on` \| `off` | Overrides `scrollOnOpen` for that group |
-| `data-accordeon-scroll-behavior` | `smooth` \| `auto` | Overrides `scrollBehavior` for that group |
-| `data-accordeon-scroll-block` | `start` \| `center` \| `end` \| `nearest` | Overrides `scrollBlock` for that group |
-
-## Verify
-
-1. Publish or refresh the page.
-2. Confirm the marked containers start closed.
-3. Click the button twice and confirm the group opens, then closes.
-
-If nothing happens, compare `#data-accordeon-group` with `data-accordeon=group`.
-
-## Design
-
-Add a separate `Head` style embed after the theme files:
+Override in the `Theme Customizing` embed:
 
 ```html
 <style>
 :root {
-  --theme-accordeon-toggle-duration: 0.25s;
-  --theme-accordeon-animation-duration: 0.28s;
-  --theme-accordeon-animation-distance: 0.5rem;
-  --theme-accordeon-animation-easing: ease-out;
+  --theme-accordeon-animation-duration: 0.4s;
 }
 </style>
 ```
 
-## API
+## Works With
 
-```javascript
-CarrdAccordeon.open('group');
-CarrdAccordeon.close('group');
-CarrdAccordeon.toggle('group');
-CarrdAccordeon.refresh();
-```
+- **Faq**: use Faq for a question list inside one container; use Accordeon to open whole containers from any button.
+- Anything placed inside the containers, including buttons that open a **Modal**, opens with the group.
+
+## Troubleshooting
+
+- The button does nothing: the link must be `#data-accordeon-<name>` with the same name as the containers.
+- The group is open on load: check `data-accordeon-default-open`.
+
+## Get the Code
+
+Copy the current embed code and paste steps from [embed.md](embed.md).

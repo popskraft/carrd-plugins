@@ -1,11 +1,10 @@
 # Carrd Plugin Guides
 
-Public reference for the plugins used in the Carrd template. Each guide is paired with the plugin's ready-to-paste embed file. Runtime source, build tooling, internal applications, tests, and private project documentation stay in the technical repository.
+Guides for the plugins used in the Carrd template: what each plugin does, how to set it up on Carrd elements, how to change its options and styles, and how it works with the other plugins.
 
 ## Guides
 
 - [Accordeon](accordeon/README.md)
-- [Cards](cards/README.md)
 - [Cookie Banner](cookie-banner/README.md)
 - [Design Palette](design-palette/README.md)
 - [Faq](faq/README.md)
@@ -20,4 +19,6 @@ Public reference for the plugins used in the Carrd template. Each guide is paire
 - [Switcher](switcher/README.md)
 - [Typography](typography/README.md)
 
-The template you purchased already has these plugins installed and configured — you do not need to install anything to use it. These files are here if you want to update one plugin by hand later: open the plugin's embed file, copy its contents, and replace the matching embed in your Carrd site.
+## Updating a Plugin
+
+The template already has these plugins installed and configured. To move one plugin to a newer version, open its `embed.md`, copy the code, and replace the code in the matching Embed element of your Carrd site. Style and option changes you made in separate embeds or element settings stay in place.

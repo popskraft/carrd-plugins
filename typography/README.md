@@ -1,71 +1,53 @@
 # Typography
 
-Converts Markdown-like plain text inside `.txt` blocks into styled typography.
+Turns simple Markdown-like text inside Carrd text blocks into styled headings, lists, and rules.
 
 ## Carrd Setup
 
-1. Add a **Text** element or **Container**.
-2. Add class `txt`.
-3. Write content with this syntax:
+1. Add a **Text** element, or a **Container** with text elements.
+2. Add the class `txt`.
+3. Write the content with this syntax:
 
-| Input | Output |
+| Type | Result |
 |---|---|
-| `# Heading` | H1 |
-| `## Heading` | H2 |
-| `### Heading` | H3 |
-| `#### Heading` | H4 |
+| `# Heading` … `#### Heading` | Heading levels 1–4 |
 | `---` | Horizontal rule |
-| `- Item` | Unordered list item |
-| `1. Item` | Ordered list item |
+| `- Item` | Bulleted list item |
+| `1. Item` | Numbered list item |
 
-HTML tables inside `.txt` receive the shared table styles automatically.
+HTML tables inside `.txt` get the theme table styles.
 
-## Configuration
+## Options
 
-No configuration is required. To use different selectors, add this in `Body End` above the bundle or plugin script:
+No options.
 
-```html
-<script>
-window.CarrdPluginOptions = {
-  typography: {
-    containerSelector: '.txt',
-    paragraphSelector: 'span.p'
-  }
-};
-</script>
-```
+## Styling
 
-| Option | Default | Result |
+| Token | Default | Controls |
 |---|---|---|
-| `containerSelector` | `'.txt'` | Selector for blocks the plugin scans |
-| `paragraphSelector` | `'span.p'` | Selector for paragraph elements inside a container |
-| `headingClasses` | `{ h1: 'theme-typography-h1', h2: 'theme-typography-h2', h3: 'theme-typography-h3', h4: 'theme-typography-h4' }` | Class names applied per heading level; merged with, not replacing, the defaults |
-| `listClasses` | `{ ul: 'theme-typography-ul', ol: 'theme-typography-ol', li: 'theme-typography-li' }` | Class names applied to generated lists; merged with, not replacing, the defaults |
-| `hrClass` | `'theme-typography-hr'` | Class name applied to generated horizontal rules |
+| `--theme-typography-heading-color` | `var(--theme-color-heading)` | Heading color |
+| `--theme-typography-font-weight` | `500` | Heading weight |
+| `--theme-typography-border-color` | `var(--theme-color-border)` | Rules and table lines |
 
-## Verify
-
-1. Publish or refresh the page.
-2. Confirm headings, lists, rules, and tables render with the theme styles.
-
-If nothing changes, confirm the class is exactly `txt`.
-
-## Design
-
-Add a separate `Head` style embed after the theme files:
+Override in the `Theme Customizing` embed:
 
 ```html
 <style>
 :root {
-  --theme-color-heading: #19355a;
-  --theme-color-border: #efefef;
+  --theme-typography-heading-color: #19355a;
 }
 </style>
 ```
 
-## API
+## Works With
 
-```javascript
-CarrdTypography.init();
-CarrdTypography.process(element);
-```
+- **Faq** and **Modal**: `.txt` text blocks inside answers or popups are styled the same way.
+
+## Troubleshooting
+
+- Nothing changes: the class must be exactly `txt`.
+- A line is not converted: start it with the marker and a space, for example `- Item`.
+
+## Get the Code
+
+Copy the current embed code and paste steps from [embed.md](embed.md).

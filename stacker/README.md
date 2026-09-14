@@ -1,75 +1,49 @@
 # Stacker
 
-Turns a group of Carrd containers into scroll-stacking cards: each container pins near the top of the screen and the next one slides over it, then the whole stack scrolls away after the last card.
+Turns a group of Carrd containers into scroll-stacking cards: each card pins near the top and the next one slides over it.
 
 ## Carrd Setup
 
-1. Create two or more containers, one after another, in the same section.
+1. Place two or more containers one after another in the same section.
 2. Add `data-stacker=stack` to every container in the group.
-3. Use another name (for example `data-stacker=projects`) for each independent stack on the page.
+3. Use another name, for example `data-stacker=projects`, for each independent stack.
 
-Containers in one group must follow each other directly. If the sequence is interrupted by other content, each contiguous run stacks on its own.
+Keep every container in a group on the same Carrd width setting (content width, `Full`, or `Full Screen`); a mixed group is left unchanged. Content between containers splits the group.
 
-Keep every container in a group on the same Carrd width setting: content width, `Full`, or `Full Screen`. Stacker preserves that setting on the whole group. If a group mixes width settings, Stacker leaves it unchanged and logs a warning instead of resizing its containers.
+## Options
 
-Optional attributes:
+| Attribute | Values | Default | Result |
+|---|---|---|---|
+| `data-stacker-offset` | pixels, e.g. `80` | `0` | Distance from the top of the screen where cards pin; set on the first container |
 
-| Attribute | Result |
-|---|---|
-| `data-stacker-offset=80` | Pins cards 80px below the top of the screen (set on the first container of the group) |
-
-The legacy attribute `data-stacked` is also accepted.
-
-## Configuration
-
-Defaults work without configuration: cards pin at the very top of the screen. To change behavior, add this in `Body End` above the plugin script:
+To turn stacking off below a screen width for the whole site, add to the `Theme Customizing` embed:
 
 ```html
 <script>
-window.CarrdPluginOptions = {
-  stacker: {
-    offset: 80,
-    minWidth: 737,
-    instances: {
-      stack: { offset: 96 }
-    }
-  }
-};
+window.CarrdPluginOptions = Object.assign(window.CarrdPluginOptions || {}, {
+  stacker: { minWidth: 737 }
+});
 </script>
 ```
 
-| Option | Default | Result |
+## Styling
+
+Style each card container in Carrd; give cards a background so the next card covers the previous one cleanly.
+
+| Token | Default | Controls |
 |---|---|---|
-| `offset` | unset (`0px`) | Distance from the top of the screen where cards pin (px or CSS length) |
-| `minWidth` | `0` | Below this viewport width the stack falls back to normal scrolling |
-| `enabled` | `true` | Set `false` to turn the plugin off |
-| `zIndexBase` | `2` | Starting `z-index` for the first stacked item |
-| `warnOnMismatch` | `true` | Logs console warnings for invalid offsets or group names |
-| `overflowFixSelector` | `'.site-wrapper'` | Ancestor selector patched to allow the stack to overflow it |
-| `attribute` | `'data-stacker'` | Attribute name used to group containers into a stack |
-| `legacyAttribute` | `'data-stacked'` | Legacy alias of `attribute` |
-| `offsetAttribute` | `'data-stacker-offset'` | Attribute name read for the per-group pin offset |
+| `--theme-stacker-offset` | `0px` | Site-wide pin distance from the top |
 
-## Verify
+## Works With
 
-1. Publish the page.
-2. Scroll through the group: the first card stops at the top and the next card covers it.
-3. After the last card, the whole group scrolls up normally.
+- **Header Nav**: with a pinned header, set `data-stacker-offset` to the header height.
+- **Slider** and **Grid Cluster** also group consecutive containers: give a container only one of `data-stacker`, `data-slider`, `data-grid`.
 
-If cards do not pin, check that every container has the same `data-stacker` name and that the containers directly follow each other.
+## Troubleshooting
 
-## Design
+- Cards do not pin: every container needs the same `data-stacker` name, with nothing between them.
+- A group does not stack: check that all its containers use the same Carrd width setting.
 
-Add a separate `Head` style embed after the theme files:
+## Get the Code
 
-```html
-<style>
-:root {
-  --theme-stacker-offset: 0px;
-}
-</style>
-```
-
-## API
-
-`window.CarrdStacker.refresh()` re-scans the page for new groups. `window.CarrdStacker.getGroups()` returns the active group wrappers.
+Copy the current embed code and paste steps from [embed.md](embed.md).

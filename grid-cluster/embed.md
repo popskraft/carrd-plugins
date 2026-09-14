@@ -1,3 +1,25 @@
+# Grid Cluster — Embed Code
+
+Version: `2.0.0`
+
+This plugin is already installed in the template. Use this code to update it by hand or to add it to another Carrd site.
+
+## Update an Installed Copy
+
+1. In Carrd, open the `Grid Cluster` Embed element.
+2. Replace all of its code with the code below.
+3. Publish and check the plugin on the page.
+
+## Add to a Site
+
+1. Make sure the site has the `Theme Design System` embed in `Hidden → Head` (the template already does).
+2. Add an `Embed` element at the end of the page, set to `Hidden → Body End`.
+3. Paste the code and title the element `Grid Cluster`.
+4. Publish and check the plugin on the page.
+
+## Code
+
+```html
 <!-- Plugin: Grid Cluster | Version: 2.0.0 -->
 <style>
 :where(:root){--theme-grid-row-gap:1rem;--theme-grid-column-gap:1rem;--theme-grid-column-gap-sm:0.5rem;--theme-grid-row-gap-desktop:2rem;--theme-grid-column-gap-desktop:1.5rem;--theme-grid-column-gap-desktop-large:2rem}.theme-grid{--grid-local-row-gap:var(--grid-gap-mobile-override,var(--grid-gap-override,var(--theme-grid-row-gap)));--grid-local-column-gap:var(--grid-gap-mobile-override,var(--grid-gap-override,var(--theme-grid-column-gap-sm)));display:grid;grid-template-columns:repeat(var(--grid-cols-sm,1),minmax(0,1fr));row-gap:var(--grid-local-row-gap);column-gap:var(--grid-local-column-gap)}.theme-grid > [data-grid]{grid-column:span var(--grid-span-sm,1);min-width:0}@media(min-width:737px){.theme-grid{--grid-local-row-gap:var(--grid-gap-override,var(--theme-grid-row-gap));--grid-local-column-gap:var(--grid-gap-override,var(--theme-grid-column-gap));grid-template-columns:repeat(var(--grid-cols,1),minmax(0,1fr))}.theme-grid > [data-grid]{grid-column:span var(--grid-span,1)}}@media(min-width:1025px){.theme-grid{--grid-local-row-gap:var(--grid-gap-override,var(--theme-grid-row-gap-desktop));--grid-local-column-gap:var(--grid-gap-override,var(--theme-grid-column-gap-desktop))}}@media(min-width:1280px){.theme-grid{--grid-local-column-gap:var(--grid-gap-override,var(--theme-grid-column-gap-desktop-large));grid-template-columns:repeat(var(--grid-cols-lg,var(--grid-cols,1)),minmax(0,1fr))}.theme-grid > [data-grid]{grid-column:span var(--grid-span-lg,var(--grid-span,1))}}.theme-grid--justify > .container-component,.theme-grid--justify > .container-component > .wrapper{display:flex}.theme-grid--justify > .container-component > .inner,.theme-grid--justify > .container-component > .wrapper > .inner{width:100%}.theme-grid > .container-component{margin:0}.theme-grid + .theme-grid{margin-top:var(--grid-local-row-gap)}.theme-grid .image-component > .frame{max-width:100%}
@@ -5,3 +27,4 @@
 <script>
 (function(){'use strict';const options=(window.CarrdPluginOptions&&window.CarrdPluginOptions.gridCluster)||{};const ATTRIBUTES={group:'data-grid',columns:'data-grid-cols',columnsSmall:'data-grid-cols-sm',columnsLarge:'data-grid-cols-lg',span:'data-grid-span',spanSmall:'data-grid-span-sm',spanLarge:'data-grid-span-lg',gap:'data-grid-gap',gapMobile:'data-grid-gap-mobile',justify:'data-grid-justify'};const WRAPPER_CLASS='theme-grid';const JUSTIFY_CLASS='theme-grid--justify';function parseUnit(value){const unit=Number(value);return Number.isInteger(unit)&&unit>=1&&unit<=6?unit:null;}function parseGap(value){const normalized=(value||'').trim();if(!normalized)return null;const numeric=Number(normalized);return Number.isFinite(numeric)?`${numeric}rem`:normalized;}function getGroupName(element){return(element.getAttribute(ATTRIBUTES.group)||'').trim();}function readSpan(element,attribute,columns,fallback){const span=parseUnit(element.getAttribute(attribute))||fallback;return Math.min(span,columns);}function applyLayout(wrapper,cluster){const first=cluster[0];const columns=parseUnit(first.getAttribute(ATTRIBUTES.columns))||1;const columnsSmall=parseUnit(first.getAttribute(ATTRIBUTES.columnsSmall))||1;const columnsLarge=parseUnit(first.getAttribute(ATTRIBUTES.columnsLarge))||columns;wrapper.style.setProperty('--grid-cols',columns);wrapper.style.setProperty('--grid-cols-sm',columnsSmall);wrapper.style.setProperty('--grid-cols-lg',columnsLarge);cluster.forEach(item=>{const span=readSpan(item,ATTRIBUTES.span,columns,1);const spanSmall=readSpan(item,ATTRIBUTES.spanSmall,columnsSmall,1);const spanLarge=readSpan(item,ATTRIBUTES.spanLarge,columnsLarge,span);item.style.setProperty('--grid-span',span);item.style.setProperty('--grid-span-sm',spanSmall);item.style.setProperty('--grid-span-lg',spanLarge);});}function wrapCluster(cluster){const first=cluster[0];const wrapper=document.createElement('div');wrapper.className=first.getAttribute(ATTRIBUTES.justify)==='true'?`${WRAPPER_CLASS} ${JUSTIFY_CLASS}`:WRAPPER_CLASS;first.parentNode.insertBefore(wrapper,first);cluster.forEach(item=>wrapper.appendChild(item));applyLayout(wrapper,cluster);const gap=parseGap(first.getAttribute(ATTRIBUTES.gap));const gapMobile=parseGap(first.getAttribute(ATTRIBUTES.gapMobile));if(gap)wrapper.style.setProperty('--grid-gap-override',gap);if(gapMobile)wrapper.style.setProperty('--grid-gap-mobile-override',gapMobile);}function init(){if(options.enabled===false)return;document.querySelectorAll(`[${ATTRIBUTES.group}]`).forEach(block=>{if(block.dataset.gridInitialized==='true')return;const name=getGroupName(block);if(!name)return;const cluster=[block];let sibling=block.nextElementSibling;while(sibling&&getGroupName(sibling)===name){cluster.push(sibling);sibling=sibling.nextElementSibling;}cluster.forEach(item=>{item.dataset.gridInitialized='true';});wrapCluster(cluster);});}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}})();
 </script>
+```
