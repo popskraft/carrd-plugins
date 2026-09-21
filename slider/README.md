@@ -1,12 +1,14 @@
 # Slider
 
-Turns consecutive Carrd containers into a swipeable carousel with dots and arrows.
+**Turn a row of Carrd containers into a tactile carousel that invites visitors to swipe, browse, and discover more.** The shared `data-slider` value tells the plugin which containers belong together; the first one defines visible slides, gaps, mode, controls, and optional autoplay at each breakpoint. Visitors can drag or swipe through the track, jump with dots, and use arrows where enabled. Each slide remains a real Carrd container, so its buttons, modal links, forms, or cart actions keep working. Separate values create independent sliders; interrupted content starts outside the group.
 
 ## Carrd Setup
 
 1. Place two or more **Container** elements one after another, with nothing between them.
-2. Add the same name to each container, for example `data-slider=gallery`.
-3. Use a different name for each independent slider.
+2. Add the same `data-slider` attribute value to each container, for example `data-slider=gallery`.
+3. Use a different `data-slider` value for each independent slider.
+
+Enter every `data-*` line in this guide in the element's **Settings → Element → Attributes** field, not in **ID** or **Classes**.
 
 All options go on the **first** container; options on later slides are ignored.
 
@@ -24,12 +26,21 @@ All options go on the **first** container; options on later slides are ignored.
 
 One number applies to all screen sizes; two numbers mean mobile and larger screens. In center mode the first and last slides sit against the edges.
 
+Fewer real slides than `data-slider-spv` calls for: slide width is still calculated from that number, so the slides stay narrower than the container and leave empty space after the last one — they do not stretch or center to fill it.
+
 Example on the first container:
 
 ```text
 data-slider=gallery
 data-slider-spv=1 2.5 3
 data-slider-gap=12 16 24
+```
+
+Example: arrows are hidden below 737px by default; this brings them back on mobile too.
+
+```text
+data-slider=gallery
+data-slider-arrows-mobile=on
 ```
 
 ## Styling
@@ -66,7 +77,7 @@ Override in the `Theme Customizing` embed:
 
 ## Troubleshooting
 
-- Nothing moves: all slides must be consecutive and share the same `data-slider` name.
+- Nothing moves: all slides must be consecutive and share the same `data-slider` attribute value.
 - An option is ignored: put it on the first container and check the value format; an invalid value falls back to the default.
 
 ## Get the Code

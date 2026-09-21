@@ -1,14 +1,15 @@
 # Modal
 
-Opens a Carrd container as a popup dialog from any link or button.
+**Turn any Carrd container into a focused popup that appears on demand without duplicating the content or leaving the page.** Give the container a `data-modal` value, then point a link or button at the matching hash; the plugin moves the visitor’s focus into the dialog, places the content over a backdrop, and restores the page when it closes. Escape, the close control, or a click outside can close it according to the container’s settings, and page scrolling can be locked while it is open. Forms, text, and other compatible elements stay authored in Carrd and work inside the popup.
 
 ## Carrd Setup
 
 1. Add `data-modal=contact` to a Carrd container that holds the popup content.
 2. Point a button or link to `#data-modal-contact`.
-3. Set the popup width with the container's own Carrd width controls.
+3. For a button without a hash link, add `data-modal-open=contact` in its **Settings → Element → Attributes** field.
+4. Set the popup width with the container's own Carrd width controls.
 
-The popup gets its accessible name from its first heading. Without a heading, add `data-modal-label=Contact form`.
+Enter every other `data-*` line in this guide in the same **Settings → Element → Attributes** field, not in **ID** or **Classes**. The popup gets its accessible name from its first heading. Without a heading, add `data-modal-label=Contact form`.
 
 ## Options
 
@@ -52,15 +53,7 @@ Override in the `Theme Customizing` embed:
 
 ## Works With
 
-- **Shopping Cart**: to stop popups from opening over the open cart, add to the `Theme Customizing` embed:
-
-```html
-<script>
-window.CarrdPluginOptions = Object.assign(window.CarrdPluginOptions || {}, {
-  modal: { preventWhenCartOpen: true }
-});
-</script>
-```
+- **Shopping Cart**: to stop popups from opening over the open cart, use the optional advanced setting at the bottom of this guide.
 
 - **Floating Cta**: a floating copy of a modal button opens the same popup.
 - A Carrd **Form** inside the modal container works as usual.
@@ -69,6 +62,18 @@ window.CarrdPluginOptions = Object.assign(window.CarrdPluginOptions || {}, {
 
 - The popup does not open: `data-modal=contact` must match the link `#data-modal-contact`.
 - The popup content flashes on page load: add `<style>.container-component[data-modal] { display: none !important; }</style>` to the `Theme Customizing` embed.
+
+### Advanced users
+
+Most sites should use the `data-*` options above. To prevent Modal from opening while the Shopping Cart is open, use this site-wide setting; there is no equivalent `data-*` option:
+
+```html
+<script>
+window.CarrdPluginOptions = Object.assign(window.CarrdPluginOptions || {}, {
+  modal: { preventWhenCartOpen: true }
+});
+</script>
+```
 
 ## Get the Code
 

@@ -1,12 +1,14 @@
 # Grid Cluster
 
-Places consecutive Carrd containers into a responsive grid of 1–6 columns, where any item can span several columns.
+**Turn a row of Carrd containers into a responsive grid that keeps cards balanced on every screen.** The shared `data-grid` value defines the group, the first container supplies column and gap settings, and each container can optionally span more than one column. The same group can use different column counts and spans at mobile, regular, and large breakpoints; items that do not fit wrap to the next row automatically. The plugin leaves the content inside each container intact, so cards, text, buttons, and other plugins remain normal Carrd elements while their outer arrangement becomes a grid.
 
 ## Carrd Setup
 
 1. Place the containers one after another, with nothing between them.
-2. Add the same name to every container, for example `data-grid=features`.
-3. On the **first** container, set the number of columns with `data-grid-cols=3`.
+2. Add the same custom attribute and value to every container, for example `data-grid=features`.
+3. On the **first** container, add `data-grid-cols=3` to set the number of columns.
+
+Enter every `data-*` line in this guide in the element's **Settings → Element → Attributes** field, not in **ID** or **Classes**.
 
 Equal columns need nothing more: the other containers carry only `data-grid=features`.
 
@@ -40,7 +42,19 @@ On any container (one item):
 | `data-grid-span-sm` | `1`–`6` | `1` | Columns the item takes up to 736px |
 | `data-grid-span-lg` | `1`–`6` | same as `data-grid-span` | Columns the item takes from 1280px |
 
-A span larger than the column count fills the row; items that do not fit move to the next row.
+A span larger than the column count fills the row; items that do not fit move to the next row. More containers than columns works the same way: extra items wrap onto a new row automatically, left-aligned, without stretching to fill any empty columns in that row.
+
+Example: three columns on desktop, one column on mobile.
+
+```text
+1st container
+data-grid=features
+data-grid-cols=3
+data-grid-cols-sm=1
+
+2nd and 3rd container
+data-grid=features
+```
 
 Example: two columns on mobile and tablet; on large screens one wide and two narrow items.
 
@@ -51,6 +65,18 @@ data-grid-cols=2
 data-grid-cols-sm=2
 data-grid-cols-lg=6
 data-grid-span-lg=4
+
+2nd and 3rd container
+data-grid=features
+```
+
+Example: a container with a narrower Content Width should still fill its grid cell edge to edge.
+
+```text
+1st container
+data-grid=features
+data-grid-cols=3
+data-grid-justify=true
 
 2nd and 3rd container
 data-grid=features
@@ -86,7 +112,7 @@ Override in the `Theme Customizing` embed:
 
 ## Troubleshooting
 
-- No grid: every container needs the same non-empty `data-grid` name and must directly follow the previous one.
+- No grid: every container needs the same non-empty `data-grid` attribute value and must directly follow the previous one.
 - Wrong column count: column settings are read only from the first container.
 
 ## Get the Code

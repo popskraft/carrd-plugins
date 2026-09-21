@@ -1,6 +1,6 @@
 # Typography
 
-Turns simple Markdown-like text inside Carrd text blocks into styled headings, lists, and rules.
+**Write structured, editorial-looking content in a Carrd text block using a few familiar Markdown-like marks.** Add the `txt` class to a Text element or text container, and the plugin interprets a limited Markdown-like syntax: leading `#` markers become heading levels, `-` and numbered lines become lists, and `---` becomes a rule. Existing HTML tables inside the block receive the shared table styling. Unrecognized text is left alone, so ordinary copy remains safe; the plugin only changes marked text within `.txt` and lets the theme control its colors and borders.
 
 ## Carrd Setup
 

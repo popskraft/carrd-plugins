@@ -1,6 +1,6 @@
 # Switcher
 
-Turns a Carrd Buttons element into tabs that show one group of elements or containers at a time.
+**Let one set of buttons switch the page between views, from pricing plans to product variants.** The Buttons element declares a shared `data-switcher` value; each target receives the matching `data-switcher-target`, and its position or explicit index maps it to a button. On load the first or configured tab is shown while other targets are hidden; clicking a button changes the group without navigating away. Several targets can share an index, and two button rows can stay synchronized with the same switcher value. Cards, grids, sliders, product buttons, and forms can live inside the targets.
 
 ## Carrd Setup
 
@@ -8,7 +8,7 @@ Turns a Carrd Buttons element into tabs that show one group of elements or conta
 2. Add `data-switcher-target=pricing` to each element or container that a button should show.
 3. Keep targets in button order, or add `data-switcher-index=1`, `2`, and so on.
 
-Give several targets the same index to show them together. Two Buttons elements with the same `data-switcher` name stay in sync.
+Enter every `data-*` line in this guide in the element's **Settings → Element → Attributes** field, not in **ID** or **Classes**. Give several targets the same index to show them together. Two Buttons elements with the same `data-switcher` value stay in sync.
 
 ## Options
 
@@ -48,8 +48,10 @@ Override in the `Theme Customizing` embed. Scope to `[data-switcher="pricing"]` 
 
 ## Troubleshooting
 
-- Nothing switches: the Buttons name, target names, and indexes must match exactly.
+- Nothing switches: the `data-switcher` value on the Buttons element, target attribute values, and indexes must match exactly.
 - The wrong tab shows first: check `data-switcher-default-index` on the Buttons element.
+- `data-switcher-default-index` higher than the number of buttons: clamps silently to the last tab.
+- A target's `data-switcher-index` has no matching button: it stays hidden permanently; check the browser console for a warning.
 
 ## Get the Code
 

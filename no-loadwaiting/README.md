@@ -1,6 +1,6 @@
 # No Loadwaiting
 
-Removes Carrd's loading delay so the page appears immediately, while keeping entry animations.
+**Make the page feel instant by removing Carrd’s waiting screen before visitors have time to notice it.** It runs from the Head embed, clears the waiting state before Carrd’s default delay becomes noticeable, and leaves the page’s regular entry animations available. There are no page attributes, controls, or per-element settings: the plugin is a small foundation layer that changes when the site becomes visible, not what the site contains. Other plugins can then initialize their layout, navigation, FAQ, or floating actions immediately against the visible page.
 
 ## Carrd Setup
 

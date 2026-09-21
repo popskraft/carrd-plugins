@@ -1,14 +1,14 @@
 # Accordeon
 
-Opens and closes a group of Carrd containers when a visitor clicks a button.
+**Let visitors reveal exactly the Carrd content they need, while one button opens or closes the whole grouped section.** The link hash identifies the group, so several independent accordions can live on one page without sharing state. A group starts closed unless you choose otherwise; opening it can also bring the content into view. The plugin changes visibility and adds the transition, while the containers themselves remain ordinary Carrd elements, so their text, forms, buttons, and other plugins keep working inside the expanded area.
 
 ## Carrd Setup
 
 1. Add `data-accordeon=details` to every container that should open and close together.
 2. Add a **Buttons** or **Links** element and set its link to `#data-accordeon-details`.
-3. Use a different name for each independent group.
+3. Use a different `data-accordeon` value for each independent group.
 
-The name in the link and in the attribute must match exactly. Groups start closed.
+Enter every `data-*` line in this guide in the element's **Settings → Element → Attributes** field, not in **ID** or **Classes**. The value after `data-accordeon=` and the value in the link hash must match exactly. Groups start closed.
 
 ## Options
 
@@ -49,7 +49,7 @@ Override in the `Theme Customizing` embed:
 
 ## Troubleshooting
 
-- The button does nothing: the link must be `#data-accordeon-<name>` with the same name as the containers.
+- The button does nothing: the link must be `#data-accordeon-<value>` and match the containers' `data-accordeon` attribute value.
 - The group is open on load: check `data-accordeon-default-open`.
 
 ## Get the Code

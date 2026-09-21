@@ -1,6 +1,6 @@
 # Accordeon — Embed Code
 
-Version: `2.0.0`
+Version: `1.0.0`
 
 This plugin is already installed in the template. Use this code to update it by hand or to add it to another Carrd site.
 
@@ -20,7 +20,7 @@ This plugin is already installed in the template. Use this code to update it by 
 ## Code
 
 ```html
-<!-- Plugin: Accordeon | Version: 2.0.0 -->
+<!-- Plugin: Accordeon | Version: 1.0.0 -->
 <style>
 :where(:root){--theme-accordeon-toggle-duration:0.25s;--theme-accordeon-animation-duration:0.28s;--theme-accordeon-animation-easing:ease-out;--theme-accordeon-animation-distance:0.5rem}.theme-accordeon-toggle{cursor:pointer}.theme-accordeon-toggle svg{transform-origin:center;transition:transform var(--theme-accordeon-toggle-duration)ease}.theme-accordeon-toggle.is-open svg{transform:rotate(180deg)}.theme-accordeon-panel[hidden]{display:none !important}.theme-accordeon-panel.is-open{animation:theme-accordeon-fade-down var(--theme-accordeon-animation-duration)var(--theme-accordeon-animation-easing)both}@keyframes theme-accordeon-fade-down{from{opacity:0;transform:translateY(calc(var(--theme-accordeon-animation-distance)* -1))}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.theme-accordeon-toggle svg,.theme-accordeon-panel.is-open{animation:none;transition:none}}
 </style>

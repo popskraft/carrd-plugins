@@ -1,6 +1,6 @@
 # Stacker — Embed Code
 
-Version: `2.0.0`
+Version: `1.0.0`
 
 This plugin is already installed in the template. Use this code to update it by hand or to add it to another Carrd site.
 
@@ -20,7 +20,7 @@ This plugin is already installed in the template. Use this code to update it by 
 ## Code
 
 ```html
-<!-- Plugin: Stacker | Version: 2.0.0 -->
+<!-- Plugin: Stacker | Version: 1.0.0 -->
 <style>
 :where(:root){--theme-stacker-offset:0px}.theme-stacker-group{display:block;width:100%;position:relative}.theme-stacker-group > .theme-stacker-item{position:sticky;position:-webkit-sticky;top:var(--theme-stacker-offset)}.theme-stacker-group.is-disabled > .theme-stacker-item{position:static}.theme-stacker-overflow-fix{overflow:clip !important}
 </style>
