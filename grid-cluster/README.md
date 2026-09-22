@@ -22,6 +22,19 @@ data-grid-cols=3
 data-grid=features
 ```
 
+### Default state
+
+If a group has only `data-grid=<name>` attributes, it starts with this state:
+
+| Property | Default |
+|---|---|
+| Columns | `1` up to 736px, `2` from 737px, `3` from 1025px, `4` from 1280px; never more than the number of grouped containers |
+| Item span | `1` at every breakpoint, so each container occupies one grid column |
+| Justify | On: each container fills the width of its grid cell |
+| Gaps | Theme grid gap tokens |
+
+These defaults are changed only by explicit grid attributes: `data-grid-cols*` changes the whole-grid column count, `data-grid-span*` changes one container's width, `data-grid-justify=false` turns justify off, and `data-grid-gap*` changes the gaps.
+
 ## Options
 
 On the first container (whole grid):
