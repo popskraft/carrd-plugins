@@ -1,12 +1,13 @@
 # Grid Cluster
 
-**Turn a row of Carrd containers into a responsive grid that keeps cards balanced on every screen.** The shared `data-grid` value defines the group, the first container supplies column and gap settings, and each container can optionally span more than one column. The same group can use different column counts and spans at mobile, regular, and large breakpoints; items that do not fit wrap to the next row automatically. The plugin leaves the content inside each container intact, so cards, text, buttons, and other plugins remain normal Carrd elements while their outer arrangement becomes a grid.
+**Turn a row of Carrd containers into a responsive grid that keeps cards balanced on every screen.** The shared `data-grid` value defines the group, the first container supplies column and gap settings, and each container can optionally span more than one column. The same group can use different column counts and spans at mobile, regular, desktop, and large breakpoints; items that do not fit wrap to the next row automatically. The plugin leaves the content inside each container intact, so cards, text, buttons, and other plugins remain normal Carrd elements while their outer arrangement becomes a grid.
 
 ## Carrd Setup
 
 1. Place the containers one after another, with nothing between them.
 2. Add the same custom attribute and value to every container, for example `data-grid=features`.
-3. On the **first** container, add `data-grid-cols=3` to set the number of columns.
+3. The default layout is one column up to 736px, two columns from 737px, three columns from 1025px, and four columns from 1280px. Add `data-grid-cols*` attributes on the **first** container only when a group needs different counts.
+4. To make one container wider, add a `data-grid-span*` attribute to that **specific container**. A span is the number of grid columns that one container occupies; it does not change the total number of columns in the grid. For example, `data-grid-span=2` makes that item fill two columns from 737px through 1279px.
 
 Enter every `data-*` line in this guide in the element's **Settings → Element → Attributes** field, not in **ID** or **Classes**.
 
@@ -27,24 +28,37 @@ On the first container (whole grid):
 
 | Attribute | Values | Default | Result |
 |---|---|---|---|
-| `data-grid-cols` | `1`–`6` | `1` | Columns from 737px |
+| `data-grid-cols` | `1`–`6` | `2` (capped by group length) | Columns from 737px |
 | `data-grid-cols-sm` | `1`–`6` | `1` | Columns up to 736px |
-| `data-grid-cols-lg` | `1`–`6` | same as `data-grid-cols` | Columns from 1280px |
+| `data-grid-cols-md` | `1`–`6` | `3` (capped by group length) | Columns from 1025px to 1279px |
+| `data-grid-cols-lg` | `1`–`6` | `4` (capped by group length) | Columns from 1280px |
 | `data-grid-gap` | number in rem, e.g. `1.5` | theme gap | Space between items |
 | `data-grid-gap-mobile` | number in rem | same as `data-grid-gap` | Space between items up to 736px |
-| `data-grid-justify` | `true` | — | Stretches container content edge to edge in each cell |
+| `data-grid-justify` | `true` or `false` | `true` | Stretches container content edge to edge in each cell; set `false` to opt out |
 
-On any container (one item):
+On any container (one item; use the first container too if that item should be wide):
 
 | Attribute | Values | Default | Result |
 |---|---|---|---|
-| `data-grid-span` | `1`–`6` | `1` | Columns the item takes from 737px |
-| `data-grid-span-sm` | `1`–`6` | `1` | Columns the item takes up to 736px |
-| `data-grid-span-lg` | `1`–`6` | same as `data-grid-span` | Columns the item takes from 1280px |
+| `data-grid-span` | `1`–`6` | `1` | Number of grid columns this item occupies from 737px through 1279px |
+| `data-grid-span-sm` | `1`–`6` | `1` | Number of grid columns this item occupies up to 736px |
+| `data-grid-span-lg` | `1`–`6` | same as `data-grid-span` | Number of grid columns this item occupies from 1280px |
 
-A span larger than the column count fills the row; items that do not fit move to the next row. More containers than columns works the same way: extra items wrap onto a new row automatically, left-aligned, without stretching to fill any empty columns in that row.
+`data-grid-cols*` controls how many columns the whole grid has. `data-grid-span*` controls how many of those columns one item occupies. A span larger than the current column count fills the row; items that do not fit move to the next row. More containers than columns works the same way: extra items wrap onto a new row automatically, left-aligned, without stretching to fill any empty columns in that row.
 
-Example: three columns on desktop, one column on mobile.
+Example: a three-column grid with a featured first item that spans two columns on regular and desktop widths.
+
+```text
+1st container
+data-grid=features
+data-grid-cols=3
+data-grid-span=2
+
+2nd and 3rd container
+data-grid=features
+```
+
+Example: three columns from 737px through large desktop, one column on mobile.
 
 ```text
 1st container
